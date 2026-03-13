@@ -828,7 +828,7 @@ canvas{position:fixed;top:0;left:0;pointer-events:none;z-index:0}
 // ══════════════════════════════════════════
 // JSONBIN CONFIG — paste your keys here
 // ══════════════════════════════════════════
-var JSONBIN_API_KEY  = "$2a$10$akjyvEHL30f8P7EbV9ePO.y8fp7iG7xPA7XAFFOSPXX/tOT8LDZSi";
+var JSONBIN_API_KEY  = "$2a$10$sUglSjOC7xbX5xuHivjiO.YBG0seoGfbtJgARRLMCwTePvdOtvZY2";
 var JSONBIN_BIN_ID   = "69b3e85cb7ec241ddc659cdb";
 
 // ══════════════════════════════════════════
@@ -856,10 +856,17 @@ function showSyncStatus(msg, col){
 // ── Save: localStorage instantly + JSONBin debounced ──
 var _saveTimer = null;
 var _BIN = 'https://api.jsonbin.io/v3/b/'+JSONBIN_BIN_ID;
-var _PROXY = 'https://corsproxy.io/?url=';
 
 function _binFetch(url, opts){
-  return fetch(_PROXY + encodeURIComponent(url), opts);
+  // Use allorigins as CORS proxy
+  if(opts && opts.method==='PUT'){
+    // For PUT (save), use no-cors via a relay
+    return fetch('https://api.allorigins.win/raw?url='+encodeURIComponent(url), opts);
+  }
+  // For GET (load), allorigins wraps response
+  return fetch('https://api.allorigins.win/get?url='+encodeURIComponent(url))
+    .then(function(r){ return r.json(); })
+    .then(function(d){ return { ok:true, json: function(){ return JSON.parse(d.contents); } }; });
 }
 
 function saveS(){
@@ -868,7 +875,7 @@ function saveS(){
   clearTimeout(_saveTimer);
   _saveTimer = setTimeout(function(){
     showSyncStatus('Saving...','var(--gold)');
-    _binFetch(_BIN, {
+    fetch('https://api.allorigins.win/raw?url='+encodeURIComponent(_BIN), {
       method:'PUT',
       headers:{
         'Content-Type':'application/json',
@@ -879,9 +886,9 @@ function saveS(){
     })
     .then(function(r){
       if(r.ok){ showSyncStatus('✓ Synced','var(--green)'); }
-      else{ r.text().then(function(t){ console.error('Save error:',t); showSyncStatus('⚠ Save failed','var(--red)'); }); }
+      else{ showSyncStatus('⚠ Save failed','var(--red)'); }
     })
-    .catch(function(e){ console.error('Save catch:',e); showSyncStatus('⚠ Offline','var(--red)'); });
+    .catch(function(e){ console.error('Save error:',e); showSyncStatus('⚠ Offline','var(--red)'); });
   }, 1500);
 }
 
@@ -890,20 +897,18 @@ function loadFromCloud(){
     showSyncStatus('⚙ Setup needed','var(--gold)'); return;
   }
   showSyncStatus('Syncing...','var(--gold)');
-  _binFetch(_BIN+'/latest', {
+  fetch('https://api.allorigins.win/get?url='+encodeURIComponent(_BIN+'/latest?'+Date.now()), {
     headers:{ 'X-Master-Key': JSONBIN_API_KEY }
   })
-  .then(function(r){
-    if(!r.ok){ return r.text().then(function(t){ throw new Error(t); }); }
-    return r.json();
-  })
-  .then(function(data){
+  .then(function(r){ return r.json(); })
+  .then(function(d){
+    var data = JSON.parse(d.contents);
     if(!data.record) return;
     var cloudS = data.record;
     var cloudEmpty = !cloudS.tasks || Object.keys(cloudS.tasks).length===0;
     var localHasData = Object.keys(S.tasks||{}).length > 0 || (S.scores||[]).length > 0;
     if(cloudEmpty && localHasData){
-      showSyncStatus('Uploading local data...','var(--gold)');
+      showSyncStatus('Uploading local...','var(--gold)');
       saveS();
       return;
     }
@@ -915,7 +920,7 @@ function loadFromCloud(){
     renderErrors(); buildRatings(); updateStats(); updateStreak();
     showSyncStatus('✓ Synced','var(--green)');
   })
-  .catch(function(e){ console.error('Load error:',e); showSyncStatus('⚠ Offline — using local','var(--red)'); });
+  .catch(function(e){ console.error('Load error:',e); showSyncStatus('⚠ Offline — local only','var(--red)'); });
 }
 
 // ── Reset all data ──
