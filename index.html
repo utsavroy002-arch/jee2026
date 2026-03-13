@@ -1,0 +1,1983 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JEE 2026 — Command Center</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Orbitron:wght@400;600;700;900&family=JetBrains+Mono:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#060810;--bg2:#0c0f1a;--bg3:#111523;
+  --card:#141828;--card2:#1a1f30;
+  --border:#1e2438;--border2:#252a3d;
+  --neon:#00f5d4;--neon2:#7b2fff;
+  --red:#ff3860;--gold:#ffd166;--orange:#ff6b35;
+  --green:#06d6a0;--blue:#4cc9f0;
+  --txt:#e2e8f8;--txt2:#8892b0;--txt3:#4a5168;
+}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--txt);font-family:'Space Grotesk',sans-serif;min-height:100vh;overflow-x:hidden}
+body::before{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");pointer-events:none;z-index:0;opacity:.4}
+canvas{position:fixed;top:0;left:0;pointer-events:none;z-index:0}
+#confetti-canvas{z-index:999}
+
+/* HEADER */
+.hdr{position:sticky;top:0;z-index:100;background:rgba(6,8,16,.92);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);padding:0 24px;height:52px;display:flex;align-items:center;gap:12px}
+.hdr-logo{font-family:'Orbitron',monospace;font-size:15px;font-weight:900;color:var(--neon);letter-spacing:2px;margin-right:4px}
+.hdr-logo span{color:var(--txt3)}
+.hdr-today{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--gold);padding:3px 10px;border-radius:4px;background:rgba(255,209,102,.08);border:1px solid rgba(255,209,102,.2);white-space:nowrap}
+.live-clock{font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:700;color:var(--neon);letter-spacing:1px}
+.hdr-sep{width:1px;height:24px;background:var(--border);margin:0 4px}
+.hdr-countdown{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--red);font-weight:700;letter-spacing:.5px;animation:pulse 2s infinite}
+.streak{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--gold);margin-left:auto;padding:4px 10px;border-radius:4px;background:rgba(255,209,102,.08);border:1px solid rgba(255,209,102,.2)}
+
+/* HERO */
+.hero{position:relative;z-index:1;padding:48px 24px 32px;text-align:center;background:linear-gradient(180deg,rgba(0,245,212,.03) 0%,transparent 100%)}
+.hero-eyebrow{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:3px;text-transform:uppercase;color:var(--txt3);margin-bottom:12px}
+.hero-title{font-family:'Orbitron',monospace;font-weight:900;line-height:.9;margin-bottom:12px}
+.hero-title .t1{font-size:clamp(28px,6vw,56px);color:var(--txt2)}
+.hero-title .t2{font-size:clamp(56px,12vw,120px);color:var(--neon);text-shadow:0 0 40px rgba(0,245,212,.4)}
+.hero-title .t3{font-size:clamp(28px,6vw,56px);color:var(--txt2)}
+.hero-sub{font-size:14px;color:var(--txt2);margin-bottom:24px}
+.target-row{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;max-width:700px;margin:0 auto}
+.tcard{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:14px 16px}
+.tcard.mains{border-top:2px solid var(--neon)}
+.tcard.adv{border-top:2px solid var(--orange)}
+.tcard.cur{border-top:2px solid var(--blue)}
+.tcard-tag{font-family:'JetBrains Mono',monospace;font-size:8px;letter-spacing:1.5px;text-transform:uppercase;color:var(--txt3);margin-bottom:4px}
+.tcard-val{font-family:'Orbitron',monospace;font-size:20px;font-weight:700;color:var(--txt)}
+.tcard-note{font-size:11px;color:var(--txt3);margin-top:3px}
+
+/* MAIN */
+.main{position:relative;z-index:1;padding:0 24px 80px;max-width:1400px;margin:0 auto}
+
+/* STAT ROW */
+.stat-row{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:16px 0 12px}
+.scard{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:12px 16px;text-align:center}
+.scard-val{font-family:'Orbitron',monospace;font-size:22px;font-weight:700}
+.scard-lbl{font-size:10px;color:var(--txt3);font-family:'JetBrains Mono',monospace;letter-spacing:1px;margin-top:3px}
+
+/* NAV */
+.nav-pills{display:flex;align-items:center;gap:6px;flex-wrap:wrap;padding:10px 0;border-bottom:1px solid var(--border);margin-bottom:16px}
+.pill{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600;padding:7px 14px;border-radius:5px;border:1px solid var(--border2);background:transparent;color:var(--txt2);cursor:pointer;transition:all .2s;white-space:nowrap}
+.pill:hover{color:var(--txt);border-color:var(--txt2)}
+.pill-spacer{flex:1}
+.active-p1{background:rgba(76,201,240,.1);border-color:var(--blue)!important;color:var(--blue)!important}
+.active-p2{background:rgba(0,245,212,.1);border-color:var(--neon)!important;color:var(--neon)!important}
+.active-p3{background:rgba(255,107,53,.1);border-color:var(--orange)!important;color:var(--orange)!important}
+.active-exam{background:rgba(255,56,96,.1);border-color:var(--red)!important;color:var(--red)!important}
+.active-score{background:rgba(255,209,102,.1);border-color:var(--gold)!important;color:var(--gold)!important}
+.active-err{background:rgba(168,85,247,.1);border-color:#b388ff!important;color:#b388ff!important}
+.active-topic{background:rgba(76,201,240,.1);border-color:var(--blue)!important;color:var(--blue)!important}
+.active-strat{background:rgba(255,209,102,.1);border-color:var(--gold)!important;color:var(--gold)!important}
+.active-blocks{background:rgba(0,245,212,.1);border-color:var(--neon)!important;color:var(--neon)!important}
+.active-chem-ret{background:rgba(6,214,160,.1);border-color:var(--green)!important;color:var(--green)!important}
+.active-routine{background:rgba(0,245,212,.1);border-color:var(--neon)!important;color:var(--neon)!important}
+
+/* PANELS */
+.panel{display:none}
+.panel.on{display:block;animation:fadeUp .3s ease}
+@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+
+/* PHASE CARDS */
+.glass-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px}
+.phase-banner{background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:16px 20px;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;gap:12px}
+.pb-title{font-family:'Orbitron',monospace;font-size:16px;font-weight:700}
+.pb-sub{font-size:12px;color:var(--txt2);margin-top:4px}
+.pb-dates{font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:700;color:var(--txt3);white-space:nowrap}
+.p1-accent{background:var(--blue)}.p2-accent{background:var(--neon)}.p3-accent{background:var(--orange)}.exam-accent{background:var(--red)}
+.day-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px;margin-bottom:16px}
+.day-card{background:var(--card2);border:1px solid var(--border);border-radius:10px;overflow:hidden;transition:all .2s}
+.day-card:hover{border-color:var(--border2);transform:translateY(-2px)}
+.day-card.exam-day{border-color:rgba(255,56,96,.4);background:rgba(255,56,96,.05)}
+.day-accent{height:2px;width:100%}
+.day-head{padding:10px 12px 6px;display:flex;align-items:flex-start;justify-content:space-between;gap:8px}
+.day-label{font-family:'JetBrains Mono',monospace;font-size:9px;font-weight:700;letter-spacing:1.5px;color:var(--txt3)}
+.day-focus{font-size:12.5px;font-weight:600;color:var(--txt);padding:0 12px 8px;line-height:1.4}
+.day-slot{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--txt3);padding:0 12px 8px}
+.task-list{padding:0 12px 12px;display:flex;flex-direction:column;gap:4px}
+.task-item{display:flex;align-items:center;gap:8px;padding:5px 7px;border-radius:5px;cursor:pointer;transition:all .15s;user-select:none}
+.task-item:hover{background:rgba(255,255,255,.03)}
+.task-item.done{opacity:.5}
+.task-item.done .task-lbl{text-decoration:line-through;color:var(--txt3)}
+.t-cb{width:14px;height:14px;border-radius:3px;border:1.5px solid var(--border2);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;transition:all .18s}
+.task-item.done .t-cb{background:var(--green);border-color:var(--green);color:#000}
+.task-lbl{font-size:11.5px;color:var(--txt2)}
+
+/* WEEK NAV */
+.week-nav{display:flex;align-items:center;gap:12px;background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:10px 16px;margin-bottom:12px}
+.wnav-btn{background:var(--card);border:1px solid var(--border2);color:var(--txt2);width:32px;height:32px;border-radius:6px;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;transition:all .2s}
+.wnav-btn:hover{color:var(--txt);border-color:var(--txt)}
+.week-title{font-family:'Orbitron',monospace;font-size:14px;font-weight:700;color:var(--neon)}
+.week-sub{font-size:11px;color:var(--txt3);margin-top:2px}
+
+/* SCORE TRACKER */
+.score-panel-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.inp-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:10px}
+.score-inp{background:var(--bg3);border:1px solid var(--border2);color:var(--txt);padding:9px 12px;border-radius:6px;font-family:'JetBrains Mono',monospace;font-size:13px;width:100%;transition:border-color .2s}
+.score-inp:focus{outline:none;border-color:var(--neon)}
+.score-inp::placeholder{color:var(--txt3)}
+.btn{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;padding:9px 18px;border-radius:5px;border:1px solid var(--neon);background:rgba(0,245,212,.1);color:var(--neon);cursor:pointer;letter-spacing:1px;text-transform:uppercase;transition:all .2s}
+.btn:hover{background:rgba(0,245,212,.2)}
+.score-chart-wrap{height:120px;display:flex;align-items:flex-end;gap:4px;padding:8px 0}
+.chart-bar-wrap{display:flex;flex-direction:column;align-items:center;gap:2px;flex:1}
+.chart-bar{width:100%;border-radius:2px 2px 0 0;min-height:2px;transition:height .4s ease}
+.chart-lbl{font-family:'JetBrains Mono',monospace;font-size:8px;color:var(--txt3);white-space:nowrap}
+.sh-hdr,.sh-row{display:grid;grid-template-columns:70px 40px 40px 40px 60px 1fr 80px;gap:8px;padding:8px 12px;font-size:11px}
+.sh-hdr{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--txt3);border-bottom:1px solid var(--border)}
+.sh-row{border-bottom:1px solid rgba(30,36,56,.4)}
+.sh-row:hover{background:rgba(255,255,255,.015)}
+.sh-total{font-family:'Orbitron',monospace;font-size:12px;font-weight:700}
+.tot-green{color:var(--green)}.tot-gold{color:var(--gold)}.tot-red{color:var(--red)}
+.mini-bar{height:5px;background:var(--border);border-radius:2px;overflow:hidden;margin-top:2px}
+.mini-fill{height:100%;border-radius:2px}
+.sh-mistake{font-size:10px;color:var(--txt3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.milestone-row{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);font-size:12px}
+.milestone-row:last-child{border-bottom:none}
+.ms-period{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--txt3);min-width:90px}
+.ms-target{font-family:'Orbitron',monospace;font-size:13px;font-weight:700;color:var(--neon)}
+.ms-bar{flex:1;height:5px;background:var(--border);border-radius:3px;overflow:hidden}
+.ms-fill{height:100%;border-radius:3px;background:linear-gradient(90deg,var(--neon),var(--blue))}
+
+/* ERROR LOG */
+.err-table{width:100%;border-collapse:collapse;font-size:12px}
+.err-table th{text-align:left;padding:10px 12px;font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--txt3);border-bottom:1px solid var(--border)}
+.err-table td{padding:9px 12px;border-bottom:1px solid rgba(30,36,56,.5);vertical-align:middle}
+.err-table tr:hover td{background:rgba(255,255,255,.015)}
+.err-inp{background:transparent;border:none;color:var(--txt);font-size:12px;font-family:'Space Grotesk',sans-serif;width:100%}
+.err-inp:focus{outline:none}
+.err-inp::placeholder{color:var(--txt3)}
+.err-select{background:var(--card2);border:1px solid var(--border2);color:var(--txt);padding:3px 6px;border-radius:4px;font-size:11px;font-family:'JetBrains Mono',monospace}
+.type-pill{padding:3px 10px;border-radius:3px;font-family:'JetBrains Mono',monospace;font-size:9px;font-weight:700;letter-spacing:1px;cursor:pointer;border:none;text-transform:uppercase}
+.type-silly{background:rgba(255,209,102,.15);color:var(--gold)}
+.type-concept{background:rgba(255,56,96,.15);color:var(--red)}
+.type-mindset{background:rgba(123,47,255,.15);color:#b388ff}
+.fix-btn{width:22px;height:22px;border-radius:4px;border:1.5px solid var(--border2);background:transparent;color:var(--txt3);cursor:pointer;font-size:12px;display:flex;align-items:center;justify-content:center;transition:all .2s}
+.fix-btn.fixed{background:var(--green);border-color:var(--green);color:#000;box-shadow:0 0 8px rgba(6,214,160,0.3)}
+
+/* REFLECTION */
+.ref-card{background:linear-gradient(135deg,rgba(0,245,212,.04),rgba(123,47,255,.04));border:1px solid rgba(0,245,212,.12);border-radius:10px;padding:16px;margin-top:16px}
+.ref-title{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--neon);margin-bottom:12px}
+.ref-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+.ref-item label{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--txt3);display:block;margin-bottom:5px}
+.ref-inp{background:var(--bg3);border:1px solid var(--border2);color:var(--txt);padding:8px 10px;border-radius:5px;font-family:'Space Grotesk',sans-serif;font-size:12px;width:100%}
+.ref-inp:focus{outline:none;border-color:var(--neon)}
+.ref-inp::placeholder{color:var(--txt3)}
+.stars{display:flex;gap:4px}
+.star{width:26px;height:26px;border-radius:4px;border:1px solid var(--border2);display:flex;align-items:center;justify-content:center;font-size:10px;font-family:'JetBrains Mono',monospace;color:var(--txt3);cursor:pointer;transition:all .15s}
+.star.lit{background:rgba(255,209,102,.2);border-color:var(--gold);color:var(--gold)}
+
+/* TOPIC MASTERY */
+.active-tp-math{background:rgba(76,201,240,.1);border-color:var(--blue)!important;color:var(--blue)!important}
+.active-tp-phy{background:rgba(255,107,53,.1);border-color:var(--orange)!important;color:var(--orange)!important}
+.active-tp-chem{background:rgba(6,214,160,.1);border-color:var(--green)!important;color:var(--green)!important}
+.tp-search{background:var(--card2);border:1px solid var(--border2);color:var(--txt);padding:7px 14px;border-radius:5px;font-family:'JetBrains Mono',monospace;font-size:11px;width:200px}
+.tp-search:focus{outline:none;border-color:var(--neon)}
+.tp-search::placeholder{color:var(--txt3)}
+.tp-bars-row{display:flex;align-items:center;gap:16px;background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:12px 16px;margin-bottom:12px;flex-wrap:wrap}
+.tp-bar-item{display:flex;align-items:center;gap:8px;flex:1;min-width:120px}
+.tp-bar-lbl{font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:700;letter-spacing:1px;min-width:34px}
+.tp-bar-track{flex:1;height:6px;background:var(--border);border-radius:3px;overflow:hidden}
+.tp-bar-fill{height:100%;border-radius:3px;transition:width .6s ease}
+.tp-bar-pct{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--txt2);min-width:28px;text-align:right}
+.tp-stat{text-align:center;min-width:70px}
+.tp-subj-hdr{display:flex;align-items:center;justify-content:space-between;font-family:'Orbitron',monospace;font-size:16px;font-weight:700;padding:10px 0;margin-bottom:10px;border-bottom:1px solid var(--border)}
+.math-hdr{color:var(--blue)}.phy-hdr{color:var(--orange)}.chem-hdr{color:var(--green)}
+.tp-subj-prog{font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:400;color:var(--txt2)}
+.tp-ch-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:10px;margin-bottom:20px}
+.tp-ch-card{background:var(--card);border:1px solid var(--border);border-radius:10px;overflow:hidden;transition:all .22s}
+.tp-ch-card:hover{border-color:var(--border2);transform:translateY(-2px)}
+.tp-ch-card.tp-mastered{border-color:rgba(6,214,160,.4)}
+.tp-ch-accent{height:2px}
+.tp-ch-head{padding:10px 12px 6px;display:flex;align-items:flex-start;gap:8px;cursor:pointer;user-select:none}
+.tp-ch-num{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--txt3);min-width:18px;padding-top:2px}
+.tp-ch-info{flex:1}
+.tp-ch-name{font-size:12.5px;font-weight:600;line-height:1.2}
+.tp-ch-meta{display:flex;align-items:center;gap:5px;margin-top:3px;flex-wrap:wrap}
+.tp-wt{font-family:'JetBrains Mono',monospace;font-size:8px;font-weight:700;padding:2px 5px;border-radius:2px}
+.tp-wt-b1{background:rgba(255,56,96,.2);color:#ff6b8a}
+.tp-wt-b2{background:rgba(255,209,102,.15);color:var(--gold)}
+.tp-wt-b3{background:rgba(76,201,240,.12);color:var(--blue)}
+.tp-wt-b4{background:rgba(74,81,104,.2);color:var(--txt3)}
+.tp-ch-qs{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--txt3)}
+.tp-ch-prog-wrap{display:flex;align-items:center;gap:5px;min-width:65px}
+.tp-ch-prog-bar{flex:1;height:3px;background:var(--border);border-radius:2px;overflow:hidden}
+.tp-ch-prog-fill{height:100%;border-radius:2px;transition:width .4s}
+.tp-ch-pct{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--txt3);min-width:24px;text-align:right}
+.tp-ch-arrow{font-size:10px;color:var(--txt3);transition:transform .2s;margin-top:2px;flex-shrink:0}
+.tp-ch-card.tp-open .tp-ch-arrow{transform:rotate(180deg)}
+.tp-ch-body{display:none;padding:0 12px 10px;border-top:1px solid var(--border)}
+.tp-ch-card.tp-open .tp-ch-body{display:block}
+.tp-day-plan{background:var(--bg3);border-radius:5px;padding:8px 10px;margin:8px 0 6px;font-size:11px;color:var(--txt2);line-height:1.6}
+.tp-day-plan b{color:var(--txt)}
+.tp-section-lbl{font-family:'JetBrains Mono',monospace;font-size:8px;letter-spacing:2px;text-transform:uppercase;color:var(--txt3);margin:8px 0 4px}
+.tp-topic-item{display:flex;align-items:center;gap:7px;padding:4px 4px;border-radius:4px;cursor:pointer;transition:background .12s;user-select:none}
+.tp-topic-item:hover{background:rgba(255,255,255,.02)}
+.tp-t-cb{width:13px;height:13px;border-radius:2px;border:1.5px solid var(--border2);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;transition:all .18s}
+.tp-topic-item.tp-done .tp-t-lbl{text-decoration:line-through;color:var(--txt3)}
+.tp-t-lbl{font-size:11.5px;color:var(--txt);flex:1;line-height:1.3}
+.tp-t-pr{font-family:'JetBrains Mono',monospace;font-size:8px;padding:1px 5px;border-radius:2px;flex-shrink:0}
+.tp-pr-must{background:rgba(255,56,96,.15);color:var(--red)}
+.tp-pr-imp{background:rgba(255,209,102,.15);color:var(--gold)}
+.tp-pr-good{background:rgba(74,81,104,.2);color:var(--txt3)}
+.tp-acc-row{display:flex;align-items:center;gap:8px;margin-top:7px;padding:6px 8px;background:var(--bg3);border-radius:5px}
+.tp-acc-lbl{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--txt3);flex:1}
+.tp-acc-inp{background:var(--card2);border:1px solid var(--border2);color:var(--txt);padding:3px 8px;border-radius:4px;font-family:'JetBrains Mono',monospace;font-size:12px;width:60px;text-align:center}
+.tp-acc-inp:focus{outline:none;border-color:var(--neon)}
+.tp-acc-disp{font-family:'Orbitron',monospace;font-size:12px;font-weight:700}
+.tp-mark-all{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:1px;text-transform:uppercase;padding:3px 8px;border-radius:3px;border:1px solid var(--border2);background:transparent;color:var(--txt3);cursor:pointer;margin-top:5px;transition:all .2s}
+.tp-mark-all:hover{color:var(--txt);border-color:var(--txt2)}
+
+/* BLOCK REVISION */
+.blk-info-banner{background:rgba(0,245,212,.06);border:1px solid rgba(0,245,212,.2);border-radius:8px;padding:12px 16px;margin-bottom:16px;font-size:12px;color:var(--txt2);line-height:1.7}
+.blk-info-banner b{color:var(--neon)}
+.blk-tabs{display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap}
+.blk-tab{font-family:'JetBrains Mono',monospace;font-size:11px;padding:6px 14px;border-radius:5px;border:1px solid var(--border2);background:transparent;color:var(--txt2);cursor:pointer;transition:all .2s}
+.blk-tab.active{background:rgba(0,245,212,.1);border-color:var(--neon);color:var(--neon)}
+.blk-legend{display:flex;align-items:center;gap:12px;margin-bottom:12px;flex-wrap:wrap}
+.blk-lbadge{font-family:'JetBrains Mono',monospace;font-size:9px;font-weight:700;padding:3px 8px;border-radius:3px;letter-spacing:.5px}
+.blk-b1{background:rgba(255,56,96,.2);color:#ff6b8a}
+.blk-b2{background:rgba(255,209,102,.15);color:var(--gold)}
+.blk-b3{background:rgba(76,201,240,.12);color:var(--blue)}
+.blk-b4{background:rgba(74,81,104,.2);color:var(--txt3)}
+.blk-subj-panel{margin-bottom:8px}
+.blk-subj-hdr{font-family:'Orbitron',monospace;font-size:14px;font-weight:700;padding:8px 0;border-bottom:1px solid var(--border);margin-bottom:10px}
+.blk-plan-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:8px;margin-bottom:16px}
+.blk-ch-card{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:12px 14px;display:flex;align-items:flex-start;gap:10px;transition:all .2s;cursor:pointer;user-select:none}
+.blk-ch-card:hover{border-color:var(--border2)}
+.blk-ch-card.blk-done{border-color:rgba(6,214,160,.4);background:rgba(6,214,160,.04)}
+.blk-ch-cb{width:18px;height:18px;border-radius:4px;border:1.5px solid var(--border2);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;transition:all .18s;margin-top:1px}
+.blk-ch-card.blk-done .blk-ch-cb{background:var(--green);border-color:var(--green);color:#000}
+.blk-ch-info{flex:1}
+.blk-ch-name{font-size:12.5px;font-weight:600;color:var(--txt);line-height:1.3}
+.blk-ch-meta{display:flex;align-items:center;gap:6px;margin-top:4px;flex-wrap:wrap}
+.blk-day-note{font-size:11px;color:var(--txt2);margin-top:3px}
+.blk-progress-row{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px}
+.blk-prog-card{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:12px 14px}
+.blk-prog-subj{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--txt3);margin-bottom:6px}
+.blk-prog-val{font-family:'Orbitron',monospace;font-size:20px;font-weight:700;margin-bottom:4px}
+.blk-prog-bar-wrap{height:4px;background:var(--border);border-radius:2px;overflow:hidden}
+.blk-prog-bar-fill{height:100%;border-radius:2px;transition:width .5s}
+.blk-day-plan-box{background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:14px 16px;margin-bottom:16px}
+.blk-day-plan-title{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--neon);margin-bottom:10px}
+.blk-day-row{display:flex;align-items:flex-start;gap:10px;padding:8px 0;border-bottom:1px solid rgba(30,36,56,.4)}
+.blk-day-row:last-child{border-bottom:none}
+.blk-day-num{font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:700;color:var(--neon);min-width:50px}
+.blk-day-content{flex:1;font-size:12px;color:var(--txt2);line-height:1.5}
+.blk-day-content b{color:var(--txt)}
+
+/* STRATEGY */
+.st-section-title{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--txt3);padding:8px 0;border-bottom:1px solid var(--border);margin-bottom:12px}
+.st-note{font-size:12px;color:var(--txt2);margin-bottom:12px;line-height:1.6}
+.st-roi-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.st-roi-col{background:var(--card);border:1px solid var(--border);border-radius:10px;overflow:hidden}
+.st-roi-hdr{padding:10px 12px;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:2px;text-transform:uppercase;font-weight:700;border-bottom:1px solid var(--border)}
+.st-roi-row{display:flex;align-items:center;gap:6px;padding:6px 10px;border-bottom:1px solid rgba(30,36,56,.4);transition:background .12s}
+.st-roi-row:last-child{border-bottom:none}
+.st-roi-row.must{border-left:2px solid var(--green)}
+.st-roi-row.imp{border-left:2px solid var(--gold)}
+.st-roi-row.good{border-left:2px solid var(--txt3)}
+.st-roi-row.skip{border-left:2px solid rgba(74,81,104,.3);opacity:.5}
+.st-ch{font-size:12px;color:var(--txt);flex:1}
+.st-roi-qs{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--txt3);min-width:38px;text-align:right}
+.st-roi-badge{font-family:'JetBrains Mono',monospace;font-size:8px;font-weight:700;padding:2px 6px;border-radius:2px;min-width:54px;text-align:center}
+.must-b{background:rgba(6,214,160,.15);color:var(--green)}
+.imp-b{background:rgba(255,209,102,.15);color:var(--gold)}
+.good-b{background:rgba(74,81,104,.2);color:var(--txt3)}
+.skip-b{background:rgba(74,81,104,.1);color:var(--txt3)}
+.st-two-col{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.st-glass{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:16px}
+.st-card-title{font-family:'Orbitron',monospace;font-size:13px;font-weight:700;margin-bottom:14px}
+.st-pyq-row{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.st-pyq-yr{font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700;min-width:32px}
+.st-pyq-bar{flex:0 0 80px;height:5px;background:var(--border);border-radius:3px;overflow:hidden}
+.st-pyq-bar div{height:100%;border-radius:3px}
+.st-pyq-why{font-size:11.5px;color:var(--txt2);flex:1}
+.st-tip-list{display:flex;flex-direction:column;gap:10px}
+.st-tip-item{display:flex;gap:10px;align-items:flex-start;font-size:12px;color:var(--txt2);line-height:1.5}
+.st-tip-item b{color:var(--txt)}
+.st-tip-num{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:700;flex-shrink:0;margin-top:1px}
+.st-day-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.st-day-card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:14px 16px}
+.st-day-card.yes-card{border-top:2px solid var(--green)}
+.st-day-card.no-card{border-top:2px solid var(--red)}
+.st-day-card.rule-card{border-top:2px solid var(--gold);grid-column:1/-1}
+.st-day-title{font-size:13px;font-weight:600;margin-bottom:10px}
+.st-day-list{list-style:none;display:flex;flex-direction:column;gap:7px}
+.st-day-list li{font-size:12px;color:var(--txt2);line-height:1.5;padding-left:14px;position:relative}
+.st-day-list li::before{content:'→';position:absolute;left:0;color:var(--txt3)}
+.st-day-list li b{color:var(--txt)}
+.st-ret-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.st-ret-card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:16px}
+.st-ret-icon{font-size:22px;margin-bottom:7px}
+.st-ret-title{font-size:13px;font-weight:600;color:var(--txt);margin-bottom:7px}
+.st-ret-body{font-size:12px;color:var(--txt2);line-height:1.7}
+.st-ret-body b{color:var(--txt)}
+.st-mock-row{margin-bottom:14px}
+.st-mock-rd{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;margin-bottom:4px}
+.st-mock-desc{font-size:12px;color:var(--txt2);line-height:1.5}
+.st-daily-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+.st-daily-item{display:flex;align-items:flex-start;gap:10px;background:var(--card);border:1px solid var(--border);border-radius:8px;padding:12px 14px;cursor:pointer;transition:all .2s;user-select:none}
+.st-daily-item:hover{border-color:var(--border2)}
+.st-daily-item.mandatory{border-color:rgba(255,209,102,.25);background:rgba(255,209,102,.04)}
+.st-daily-item.st-done{border-color:rgba(6,214,160,.3);background:rgba(6,214,160,.05)}
+.st-daily-cb{font-size:16px;color:var(--txt3);min-width:20px;transition:all .2s;margin-top:1px}
+.st-daily-item.st-done .st-daily-cb{color:var(--green)}
+.st-daily-title{font-size:12.5px;font-weight:600;color:var(--txt);margin-bottom:2px;line-height:1.3}
+.st-daily-item.st-done .st-daily-title{color:var(--txt3);text-decoration:line-through}
+.st-daily-sub{font-size:11px;color:var(--txt3);line-height:1.5}
+
+/* CHEM RETENTION */
+.crt-rule-box{background:rgba(6,214,160,.06);border:1px solid rgba(6,214,160,.2);border-radius:8px;padding:12px 16px;margin-bottom:16px}
+.crt-rule-title{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--green);margin-bottom:8px}
+.crt-rule-body{font-size:11.5px;color:var(--txt2);line-height:2;display:flex;align-items:center;flex-wrap:wrap;gap:6px}
+.crt-day-badge{font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:700;padding:3px 9px;border-radius:3px}
+.d1{background:rgba(76,201,240,.2);color:var(--blue)}.d3{background:rgba(6,214,160,.2);color:var(--green)}.d7{background:rgba(255,209,102,.2);color:var(--gold)}.d14{background:rgba(255,56,96,.2);color:var(--red)}
+.crt-section-hdr{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:2px;text-transform:uppercase;font-weight:700;padding:9px 14px;border-radius:6px;border:1px solid;margin:14px 0 8px}
+.crt-chapters-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:8px;margin-bottom:6px}
+.crt-ch-card{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:11px 13px}
+.crt-ch-card.crt-complete{border-color:rgba(6,214,160,.4);background:rgba(6,214,160,.04)}
+.crt-ch-name{font-size:12px;font-weight:600;color:var(--txt);margin-bottom:9px}
+.crt-days-row{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.crt-day-item{display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;user-select:none}
+.crt-day-cb{width:30px;height:30px;border-radius:5px;border:1.5px solid var(--border2);display:flex;align-items:center;justify-content:center;font-size:10px;font-family:'JetBrains Mono',monospace;font-weight:700;transition:all .2s;color:var(--txt3)}
+.crt-day-cb.done-d1{background:rgba(76,201,240,.25);border-color:var(--blue);color:var(--blue)}
+.crt-day-cb.done-d3{background:rgba(6,214,160,.25);border-color:var(--green);color:var(--green)}
+.crt-day-cb.done-d7{background:rgba(255,209,102,.25);border-color:var(--gold);color:var(--gold)}
+.crt-day-cb.done-d14{background:rgba(255,56,96,.25);border-color:var(--red);color:var(--red)}
+.crt-day-lbl{font-family:'JetBrains Mono',monospace;font-size:8px;color:var(--txt3);letter-spacing:.5px}
+.crt-arrow{color:var(--txt3);font-size:9px;margin-bottom:10px}
+
+/* DAILY ROUTINE */
+.rtn-shift-btn{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;padding:8px 16px;border-radius:6px;border:1px solid var(--border2);background:var(--card);color:var(--txt2);cursor:pointer;transition:all .2s;letter-spacing:.5px}
+.rtn-shift-btn:hover{color:var(--txt);border-color:var(--txt2)}
+.active-shift{background:rgba(255,209,102,.12)!important;border-color:var(--gold)!important;color:var(--gold)!important}
+.rtn-today-banner{background:rgba(0,245,212,.06);border:1px solid rgba(0,245,212,.2);border-radius:8px;padding:10px 16px;margin-bottom:14px;font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--neon);letter-spacing:.5px}
+.rtn-grid{display:flex;flex-direction:column;gap:5px;max-width:820px}
+.rtn-slot{display:flex;align-items:stretch;border-radius:7px;overflow:hidden;border:1px solid var(--border);transition:all .2s}
+.rtn-slot.rtn-sleep{border-color:rgba(168,85,247,.3);background:rgba(168,85,247,.04)}
+.rtn-slot.rtn-study{border-color:rgba(76,201,240,.15)}
+.rtn-slot.rtn-break{border-color:rgba(6,214,160,.2);background:rgba(6,214,160,.03)}
+.rtn-slot.rtn-mandatory{border-color:rgba(255,209,102,.35);background:rgba(255,209,102,.04)}
+.rtn-slot.rtn-mock{border-color:rgba(255,107,53,.25);background:rgba(255,107,53,.04)}
+.rtn-time{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;min-width:96px;padding:10px 12px;display:flex;align-items:center;background:var(--card2);border-right:1px solid var(--border);white-space:nowrap}
+.rtn-content{flex:1;padding:9px 14px;display:flex;align-items:center;justify-content:space-between;gap:10px}
+.rtn-label{font-size:12.5px;font-weight:600;color:var(--txt)}
+.rtn-sub{font-size:11px;color:var(--txt3);margin-top:2px}
+.rtn-tag{font-family:'JetBrains Mono',monospace;font-size:9px;font-weight:700;padding:3px 8px;border-radius:3px;letter-spacing:.5px;white-space:nowrap}
+.tag-math{background:rgba(76,201,240,.15);color:var(--blue)}
+.tag-phys{background:rgba(255,107,53,.15);color:var(--orange)}
+.tag-chem{background:rgba(6,214,160,.15);color:var(--green)}
+.tag-mock{background:rgba(255,107,53,.2);color:var(--orange)}
+.tag-break{background:rgba(6,214,160,.12);color:var(--green)}
+.tag-sleep{background:rgba(168,85,247,.15);color:#b388ff}
+.tag-must{background:rgba(255,209,102,.2);color:var(--gold)}
+.rtn-note{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:16px;margin-top:16px;max-width:820px}
+.rtn-note-title{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--neon);margin-bottom:12px}
+.rtn-note-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.rtn-note-item{display:flex;gap:10px;align-items:flex-start;font-size:12px;color:var(--txt2);line-height:1.6}
+.rtn-note-item b{color:var(--txt)}
+.rtn-note-icon{font-size:17px;flex-shrink:0;margin-top:-1px}
+
+/* TOAST */
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--card2);border:1px solid var(--border2);color:var(--txt);padding:10px 20px;border-radius:8px;font-family:'JetBrains Mono',monospace;font-size:12px;z-index:9999;transition:transform .3s ease;pointer-events:none}
+.toast.show{transform:translateX(-50%) translateY(0)}
+
+/* ANIMATIONS */
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.6}}
+
+/* RESPONSIVE */
+@media(max-width:900px){
+  .hero{padding:32px 16px 24px}
+  .main{padding:0 16px 60px}
+  .target-row{grid-template-columns:1fr}
+  .stat-row{grid-template-columns:repeat(2,1fr)}
+  .day-grid{grid-template-columns:1fr}
+  .score-panel-grid{grid-template-columns:1fr}
+  .ref-grid{grid-template-columns:1fr}
+  .st-roi-grid,.st-ret-grid{grid-template-columns:1fr}
+  .st-two-col,.st-day-grid,.st-daily-grid,.rtn-note-grid{grid-template-columns:1fr}
+  .blk-plan-grid,.blk-progress-row{grid-template-columns:1fr}
+  .tp-ch-grid,.crt-chapters-grid{grid-template-columns:1fr}
+  .hdr{padding:0 12px;gap:8px}
+  .hdr-today{display:none}
+}
+
+/* ── Mobile touch improvements ── */
+@media(max-width:600px){
+  .task-item{padding:8px 7px;min-height:36px}
+  .t-cb{width:18px;height:18px;font-size:11px}
+  .task-lbl{font-size:13px}
+  .pill{padding:9px 14px;font-size:12px}
+  .nav-pills{overflow-x:auto;flex-wrap:nowrap;padding-bottom:6px;-webkit-overflow-scrolling:touch}
+  .nav-pills::-webkit-scrollbar{display:none}
+  .blk-ch-card{padding:14px}
+  .blk-ch-cb{width:22px;height:22px}
+  .tp-topic-item{padding:7px 4px;min-height:36px}
+  .tp-t-cb{width:17px;height:17px}
+  .crt-day-cb{min-width:36px;min-height:36px;font-size:11px}
+  .stat-row{grid-template-columns:1fr 1fr}
+  .target-row{grid-template-columns:1fr}
+  .score-panel-grid{grid-template-columns:1fr}
+  .inp-row{grid-template-columns:1fr 1fr}
+  .hero{padding:24px 16px 20px}
+  .main{padding:0 12px 80px}
+  .rtn-slot{flex-direction:column;gap:6px}
+  .rtn-tag{align-self:flex-start}
+}
+</style>
+</head>
+<body>
+<canvas id="particles"></canvas>
+<canvas id="confetti-canvas"></canvas>
+
+<header class="hdr">
+  <div class="hdr-logo">JEE<span>//</span>2026</div>
+  <div class="hdr-today" id="hdrToday"></div>
+  <div class="live-clock" id="liveClock"></div>
+  <div class="hdr-sep"></div>
+  <div class="hdr-countdown" id="countdown">Loading...</div>
+  <div class="streak" id="streakBadge">🔥 <span id="streakNum">0</span> DAY STREAK</div>
+  <div id="syncStatus" style="font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--neon);padding:3px 8px;border-radius:4px;background:rgba(0,245,212,.08);border:1px solid rgba(0,245,212,.2);white-space:nowrap">Connecting...</div>
+  <button onclick="resetData()" style="font-family:'JetBrains Mono',monospace;font-size:9px;padding:3px 8px;border-radius:4px;border:1px solid rgba(255,56,96,.4);background:rgba(255,56,96,.08);color:var(--red);cursor:pointer" title="Reset all saved data">↺ RESET</button>
+</header>
+
+<div class="hero">
+  <div class="hero-eyebrow">// MISSION CONTROL · MAR 13 → MAY 17, 2026</div>
+  <h1 class="hero-title">
+    <div class="t1">CRACK</div>
+    <div class="t2">JEE</div>
+    <div class="t3">2026</div>
+  </h1>
+  <p class="hero-sub">97.68 → 99.5+ Mains &nbsp;·&nbsp; AIR &lt;1500 Advanced &nbsp;·&nbsp; Pure Execution</p>
+  <div class="target-row">
+    <div class="tcard mains">
+      <div class="tcard-tag">// Mains Target</div>
+      <div class="tcard-val">99.5%ile</div>
+      <div class="tcard-note">Exam: Apr 2–9, 2026 (any day)</div>
+    </div>
+    <div class="tcard adv">
+      <div class="tcard-tag">// Advanced Target</div>
+      <div class="tcard-val">AIR &lt;1500</div>
+      <div class="tcard-note">Exam: May 17, 2026</div>
+    </div>
+    <div class="tcard cur">
+      <div class="tcard-tag">// Current Best</div>
+      <div class="tcard-val">97.68%ile</div>
+      <div class="tcard-note">Gap: 1.82 percentile to bridge</div>
+    </div>
+  </div>
+</div>
+
+<div class="main">
+  <div class="stat-row">
+    <div class="scard"><div class="scard-val" id="s-tasks" style="color:var(--green)">0</div><div class="scard-lbl">Tasks Done</div></div>
+    <div class="scard"><div class="scard-val" id="s-avg" style="color:var(--neon)">—</div><div class="scard-lbl">Avg Mock</div></div>
+    <div class="scard"><div class="scard-val" id="s-best" style="color:var(--gold)">—</div><div class="scard-lbl">Best Score</div></div>
+    <div class="scard"><div class="scard-val" id="s-days" style="color:var(--red)">—</div><div class="scard-lbl">Days to Adv</div></div>
+  </div>
+
+  <div class="nav-pills">
+    <button class="pill" id="pill-p1" onclick="switchTab('p1')">Phase 1 · Boards</button>
+    <button class="pill" id="pill-p2" onclick="switchTab('p2')">Phase 2 · Blitz</button>
+    <button class="pill" id="pill-p3" onclick="switchTab('p3')">Phase 3 · Adv</button>
+    <button class="pill" id="pill-exam" onclick="switchTab('exam')">Exam Week</button>
+    <div class="pill-spacer"></div>
+    <button class="pill" id="pill-blocks" onclick="switchTab('blocks')">📦 Block Plan</button>
+    <button class="pill" id="pill-topic" onclick="switchTab('topic')">📚 Topics</button>
+    <button class="pill" id="pill-score" onclick="switchTab('score')">📊 Scores</button>
+    <button class="pill" id="pill-err" onclick="switchTab('err')">📋 Errors</button>
+    <button class="pill" id="pill-strat" onclick="switchTab('strat')">🎯 Strategy</button>
+    <button class="pill" id="pill-chem-ret" onclick="switchTab('chem-ret')">🧪 Chem Retention</button>
+    <button class="pill" id="pill-routine" onclick="switchTab('routine')">⏰ Routine</button>
+  </div>
+
+  <!-- PHASE 1 -->
+  <div class="panel" id="panel-p1">
+    <div class="phase-banner">
+      <div><div class="pb-title" style="color:var(--blue)">Phase 1 — Board Exams</div><div class="pb-sub">English Boards (Mar 10–11) · JEE full work starts Mar 13 · Music Mar 17 · Biology Mar 27</div></div>
+      <div class="pb-dates">Mar 10–11</div>
+    </div>
+    <div class="day-grid" id="grid-p1"></div>
+  </div>
+
+  <!-- PHASE 2 -->
+  <div class="panel" id="panel-p2">
+    <div class="phase-banner">
+      <div><div class="pb-title" style="color:var(--neon)">Phase 2 — MathonGo Block Revision + Mocks</div><div class="pb-sub">S1: Math 2h + Physics 3h + Chem 2h · S2: Math 3h + Physics 1h + Chem 2h · Alternating daily · 20 PYQs/chapter (Block order) · All 83 chapters by Mar 29 · Mar 30 = Mock Day</div></div>
+      <div class="pb-dates">Mar 13 – Apr 1</div>
+    </div>
+    <div class="week-nav">
+      <button class="wnav-btn" onclick="changeWeek(-1)">‹</button>
+      <div style="flex:1"><div class="week-title" id="week-title">Week 2</div><div class="week-sub" id="week-sub"></div></div>
+      <button class="wnav-btn" onclick="changeWeek(1)">›</button>
+    </div>
+    <div class="day-grid" id="grid-p2"></div>
+    <div class="ref-card">
+      <div class="ref-title">// WEEKLY REFLECTION</div>
+      <div class="ref-grid">
+        <div class="ref-item"><label>Best mock score this week</label><input class="ref-inp" id="ref-best" placeholder="e.g. 240"></div>
+        <div class="ref-item"><label>Average mock score</label><input class="ref-inp" id="ref-avg" placeholder="e.g. 215"></div>
+        <div class="ref-item"><label>Topics mastered</label><input class="ref-inp" id="ref-mastered" placeholder="Integration, Electrostatics..."></div>
+        <div class="ref-item"><label>Topics still weak</label><input class="ref-inp" id="ref-weak" placeholder="p-block, Permutations..."></div>
+      </div>
+      <div class="ref-grid" style="margin-top:16px">
+        <div class="ref-item"><label>Consistency</label><div class="stars" id="stars-consistency"></div></div>
+        <div class="ref-item"><label>Focus quality</label><div class="stars" id="stars-focus"></div></div>
+        <div class="ref-item"><label>Test performance</label><div class="stars" id="stars-test"></div></div>
+        <div class="ref-item"><label>Inorganic nightly ✦</label><div class="stars" id="stars-inorg"></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PHASE 3 -->
+  <div class="panel" id="panel-p3">
+    <div class="phase-banner">
+      <div><div class="pb-title" style="color:var(--orange)">Phase 3 — JEE Advanced Prep</div><div class="pb-sub">Full Advanced mocks (both papers) every 3 days · 60% fixed + 40% weak areas on off days</div></div>
+      <div class="pb-dates">Apr 10 – May 16</div>
+    </div>
+    <div class="day-grid" id="grid-p3"></div>
+  </div>
+
+  <!-- EXAM WEEK -->
+  <div class="panel" id="panel-exam">
+    <div class="phase-banner">
+      <div><div class="pb-title" style="color:var(--red)">Exam Week — JEE Advanced</div><div class="pb-sub">Light revision only · REST · Execute everything you have built</div></div>
+      <div class="pb-dates">May 15–17</div>
+    </div>
+    <div class="day-grid" id="grid-exam"></div>
+  </div>
+
+  <!-- BLOCK PLAN -->
+  <div class="panel" id="panel-blocks">
+    <div style="font-family:'Orbitron',monospace;font-size:20px;font-weight:700;color:var(--neon);margin-bottom:4px">📦 MathonGo Block Revision Plan</div>
+    <div style="font-size:12px;color:var(--txt2);margin-bottom:14px">Top 500 PYQ · 20 questions per chapter · Block 1 = highest priority · Mar 13–Apr 1</div>
+
+    <div class="blk-info-banner">
+      <b>Your Plan:</b> 20 PYQs per chapter · Each chapter = ~1.5 hrs (attempt + review + error log). <b>Shift 1 days:</b> Math 2h (1 chapter) · Physics 3h (2 chapters) · Chem 2h (1 chapter). <b>Shift 2 days:</b> Math 3h (2 chapters) · Physics 1h (1 chapter) · Chem 2h (1 chapter). Alternating daily = balanced coverage. <b>All 83 chapters done by Mar 29</b> (Math 29ch ✓ · Physics 31ch ✓ · Chem 23ch ✓). Mar 30 = Full Mock Day 🎯
+    </div>
+
+    <div class="blk-day-plan-box">
+      <div class="blk-day-plan-title">// Day-wise Block Schedule (Mar 13 → Apr 1)</div>
+      <div id="blk-day-schedule"></div>
+    </div>
+
+    <div class="blk-progress-row">
+      <div class="blk-prog-card"><div class="blk-prog-subj" style="color:var(--blue)">MATH</div><div class="blk-prog-val" id="blk-prog-math" style="color:var(--blue)">0/29</div><div class="blk-prog-bar-wrap"><div class="blk-prog-bar-fill" id="blk-bar-math" style="width:0%;background:var(--blue)"></div></div></div>
+      <div class="blk-prog-card"><div class="blk-prog-subj" style="color:var(--orange)">PHYSICS</div><div class="blk-prog-val" id="blk-prog-phy" style="color:var(--orange)">0/31</div><div class="blk-prog-bar-wrap"><div class="blk-prog-bar-fill" id="blk-bar-phy" style="width:0%;background:var(--orange)"></div></div></div>
+      <div class="blk-prog-card"><div class="blk-prog-subj" style="color:var(--green)">CHEMISTRY</div><div class="blk-prog-val" id="blk-prog-chem" style="color:var(--green)">0/23</div><div class="blk-prog-bar-wrap"><div class="blk-prog-bar-fill" id="blk-bar-chem" style="width:0%;background:var(--green)"></div></div></div>
+    </div>
+
+    <div class="blk-tabs">
+      <button class="blk-tab active" id="bt-all" onclick="switchBlkTab('all')">All Blocks</button>
+      <button class="blk-tab" id="bt-b1" onclick="switchBlkTab('b1')">Block 1 🔴</button>
+      <button class="blk-tab" id="bt-b2" onclick="switchBlkTab('b2')">Block 2 🟡</button>
+      <button class="blk-tab" id="bt-b3" onclick="switchBlkTab('b3')">Block 3 🔵</button>
+      <button class="blk-tab" id="bt-b4" onclick="switchBlkTab('b4')">Block 4 ⚪</button>
+    </div>
+    <div class="blk-legend">
+      <span class="blk-lbadge blk-b1">BLOCK 1 · Priority 1</span>
+      <span class="blk-lbadge blk-b2">BLOCK 2 · Priority 2</span>
+      <span class="blk-lbadge blk-b3">BLOCK 3 · Priority 3</span>
+      <span class="blk-lbadge blk-b4">BLOCK 4 · Do if time</span>
+      <span style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--txt3)">Click card to mark done ✓</span>
+    </div>
+
+    <div id="blk-math-section" class="blk-subj-panel">
+      <div class="blk-subj-hdr" style="color:var(--blue)">MATHEMATICS</div>
+      <div id="blk-grid-math" class="blk-plan-grid"></div>
+    </div>
+    <div id="blk-phy-section" class="blk-subj-panel">
+      <div class="blk-subj-hdr" style="color:var(--orange)">PHYSICS</div>
+      <div id="blk-grid-phy" class="blk-plan-grid"></div>
+    </div>
+    <div id="blk-chem-section" class="blk-subj-panel">
+      <div class="blk-subj-hdr" style="color:var(--green)">CHEMISTRY</div>
+      <div id="blk-grid-chem" class="blk-plan-grid"></div>
+    </div>
+  </div>
+
+  <!-- TOPIC MASTERY -->
+  <div class="panel" id="panel-topic">
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:10px">
+      <div>
+        <div style="font-family:'Orbitron',monospace;font-size:20px;font-weight:700;color:var(--neon)">Topic Mastery Tracker</div>
+        <div style="font-size:12px;color:var(--txt2);margin-top:3px">Every chapter · tick subtopics · log Mathango accuracy</div>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+        <input id="tp-search" class="tp-search" placeholder="🔍 search..." oninput="filterTopics(this.value)">
+        <button class="pill active-tp-math" id="tp-tab-math" onclick="switchTopicTab('math')">Math</button>
+        <button class="pill" id="tp-tab-phy" onclick="switchTopicTab('phy')">Physics</button>
+        <button class="pill" id="tp-tab-chem" onclick="switchTopicTab('chem')">Chemistry</button>
+      </div>
+    </div>
+    <div class="tp-bars-row">
+      <div class="tp-bar-item"><span class="tp-bar-lbl" style="color:var(--blue)">MATH</span><div class="tp-bar-track"><div class="tp-bar-fill" id="tpb-math" style="width:0%;background:var(--blue)"></div></div><span class="tp-bar-pct" id="tpbp-math">0%</span></div>
+      <div class="tp-bar-item"><span class="tp-bar-lbl" style="color:var(--orange)">PHYS</span><div class="tp-bar-track"><div class="tp-bar-fill" id="tpb-phy" style="width:0%;background:var(--orange)"></div></div><span class="tp-bar-pct" id="tpbp-phy">0%</span></div>
+      <div class="tp-bar-item"><span class="tp-bar-lbl" style="color:var(--green)">CHEM</span><div class="tp-bar-track"><div class="tp-bar-fill" id="tpb-chem" style="width:0%;background:var(--green)"></div></div><span class="tp-bar-pct" id="tpbp-chem">0%</span></div>
+      <div class="tp-stat"><div style="font-family:'Orbitron',monospace;font-size:20px;color:var(--green)" id="tp-stat-done">0</div><div style="font-size:9px;color:var(--txt3);letter-spacing:1px">DONE</div></div>
+      <div class="tp-stat"><div style="font-family:'Orbitron',monospace;font-size:20px;color:var(--gold)" id="tp-stat-ch">0</div><div style="font-size:9px;color:var(--txt3);letter-spacing:1px">READY</div></div>
+      <div class="tp-stat"><div style="font-family:'Orbitron',monospace;font-size:20px;color:var(--red)" id="tp-stat-weak">0</div><div style="font-size:9px;color:var(--txt3);letter-spacing:1px">WEAK</div></div>
+    </div>
+    <div id="tp-panel-math"><div class="tp-subj-hdr math-hdr"><span>MATHEMATICS</span><span class="tp-subj-prog" id="tp-prog-math">0%</span></div><div class="tp-ch-grid" id="tp-grid-math"></div></div>
+    <div id="tp-panel-phy" style="display:none"><div class="tp-subj-hdr phy-hdr"><span>PHYSICS</span><span class="tp-subj-prog" id="tp-prog-phy">0%</span></div><div class="tp-ch-grid" id="tp-grid-phy"></div></div>
+    <div id="tp-panel-chem" style="display:none"><div class="tp-subj-hdr chem-hdr"><span>CHEMISTRY</span><span class="tp-subj-prog" id="tp-prog-chem">0%</span></div><div class="tp-ch-grid" id="tp-grid-chem"></div></div>
+  </div>
+
+  <!-- SCORE TRACKER -->
+  <div class="panel" id="panel-score">
+    <div style="font-family:'Orbitron',monospace;font-size:20px;font-weight:700;margin-bottom:16px;color:var(--gold)">Score Tracker</div>
+    <div class="score-panel-grid">
+      <div class="glass-card">
+        <div style="font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--txt3);margin-bottom:12px">// LOG NEW SCORE</div>
+        <div class="inp-row">
+          <input class="score-inp" id="si-date" placeholder="Date (Mar 15)">
+          <input class="score-inp" id="si-phy" type="number" placeholder="Physics">
+          <input class="score-inp" id="si-che" type="number" placeholder="Chem">
+        </div>
+        <div class="inp-row" style="grid-template-columns:1fr 1fr;margin-bottom:8px">
+          <input class="score-inp" id="si-mat" type="number" placeholder="Math">
+          <input class="score-inp" id="si-mistake" placeholder="Key mistake today">
+        </div>
+        <button class="btn" onclick="logScore()">+ LOG SCORE</button>
+        <div style="margin-top:16px">
+          <div style="font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--txt3);margin-bottom:8px">// Progress Milestones</div>
+          <div class="milestone-row"><span class="ms-period">Mar 13–19</span><span class="ms-target">200–220</span><div class="ms-bar"><div class="ms-fill" id="ms1" style="width:0%"></div></div></div>
+          <div class="milestone-row"><span class="ms-period">Mar 20–26</span><span class="ms-target">220–240</span><div class="ms-bar"><div class="ms-fill" id="ms2" style="width:0%"></div></div></div>
+          <div class="milestone-row"><span class="ms-period">Mar 27–Apr 2</span><span class="ms-target">240–260</span><div class="ms-bar"><div class="ms-fill" id="ms3" style="width:0%"></div></div></div>
+          <div class="milestone-row"><span class="ms-period">Apr 3–9</span><span class="ms-target">260–280</span><div class="ms-bar"><div class="ms-fill" id="ms4" style="width:0%"></div></div></div>
+        </div>
+      </div>
+      <div class="glass-card">
+        <div style="font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--txt3);margin-bottom:8px">// Score Trend</div>
+        <div class="score-chart-wrap" id="score-chart"></div>
+        <div class="sh-hdr"><span>Date</span><span>Phy</span><span>Che</span><span>Mat</span><span>Total</span><span></span><span>Mistake</span></div>
+        <div id="score-hist"><div style="text-align:center;padding:24px;color:var(--txt3);font-family:'JetBrains Mono',monospace;font-size:11px">No scores yet. Log your first mock!</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ERROR LOG -->
+  <div class="panel" id="panel-err">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
+      <div>
+        <div style="font-family:'Orbitron',monospace;font-size:20px;font-weight:700">Error Log</div>
+        <div style="font-size:12px;color:var(--txt2);margin-top:4px">Every wrong answer goes here. Categorise → Study → Re-solve → Fix.</div>
+      </div>
+      <button class="btn" onclick="addError()">+ ADD ERROR</button>
+    </div>
+    <div class="glass-card" style="padding:0;overflow:hidden">
+      <table class="err-table">
+        <thead><tr><th>#</th><th>Date</th><th>Subj</th><th style="min-width:120px">Topic</th><th style="min-width:160px">What went wrong?</th><th>Type</th><th>Fixed?</th></tr></thead>
+        <tbody id="err-body"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- STRATEGY -->
+  <div class="panel" id="panel-strat">
+    <div style="font-family:'Orbitron',monospace;font-size:20px;font-weight:700;color:var(--gold);margin-bottom:4px">🎯 April Mains Strategy</div>
+    <div style="font-size:12px;color:var(--txt2);margin-bottom:16px">Chapter ROI · PYQ strategy · 1-day rule · Chemistry retention · Mock technique</div>
+
+    <div class="st-section-title">// CHAPTER ROI — What to Do First</div>
+    <div class="st-roi-grid">
+      <div class="st-roi-col">
+        <div class="st-roi-hdr" style="background:rgba(76,201,240,.1);border-color:var(--blue);color:var(--blue)">MATHEMATICS</div>
+        <div class="st-roi-row must"><span class="st-ch">Definite Integration</span><span class="st-roi-qs">3–4 Qs</span><span class="st-roi-badge must-b">DO FIRST</span></div>
+        <div class="st-roi-row must"><span class="st-ch">Differential Equations</span><span class="st-roi-qs">2 Qs</span><span class="st-roi-badge must-b">DO FIRST</span></div>
+        <div class="st-roi-row must"><span class="st-ch">Probability</span><span class="st-roi-qs">2–3 Qs</span><span class="st-roi-badge must-b">DO FIRST</span></div>
+        <div class="st-roi-row must"><span class="st-ch">Matrices &amp; Determinants</span><span class="st-roi-qs">2–3 Qs</span><span class="st-roi-badge must-b">DO FIRST</span></div>
+        <div class="st-roi-row must"><span class="st-ch">3D Geometry</span><span class="st-roi-qs">2–3 Qs</span><span class="st-roi-badge must-b">DO FIRST</span></div>
+        <div class="st-roi-row imp"><span class="st-ch">Complex Numbers</span><span class="st-roi-qs">2–3 Qs</span><span class="st-roi-badge imp-b">HIGH</span></div>
+        <div class="st-roi-row imp"><span class="st-ch">Circles</span><span class="st-roi-qs">2–3 Qs</span><span class="st-roi-badge imp-b">HIGH</span></div>
+        <div class="st-roi-row imp"><span class="st-ch">P &amp; C</span><span class="st-roi-qs">2–3 Qs</span><span class="st-roi-badge imp-b">HIGH</span></div>
+        <div class="st-roi-row good"><span class="st-ch">Parabola / Ellipse</span><span class="st-roi-qs">1–2 Qs</span><span class="st-roi-badge good-b">MED</span></div>
+        <div class="st-roi-row skip"><span class="st-ch">Statistics / Hyperbola</span><span class="st-roi-qs">1 Q</span><span class="st-roi-badge skip-b">LOW</span></div>
+      </div>
+      <div class="st-roi-col">
+        <div class="st-roi-hdr" style="background:rgba(255,107,53,.1);border-color:var(--orange);color:var(--orange)">PHYSICS</div>
+        <div class="st-roi-row must"><span class="st-ch">Electrostatics + Capacitors</span><span class="st-roi-qs">3–4 Qs</span><span class="st-roi-badge must-b">DO FIRST</span></div>
+        <div class="st-roi-row must"><span class="st-ch">Current Electricity</span><span class="st-roi-qs">2–3 Qs</span><span class="st-roi-badge must-b">DO FIRST</span></div>
+        <div class="st-roi-row must"><span class="st-ch">Ray Optics</span><span class="st-roi-qs">2–3 Qs</span><span class="st-roi-badge must-b">DO FIRST</span></div>
+        <div class="st-roi-row must"><span class="st-ch">Modern Physics</span><span class="st-roi-qs">2–3 Qs</span><span class="st-roi-badge must-b">DO FIRST</span></div>
+        <div class="st-roi-row must"><span class="st-ch">Rotational Motion</span><span class="st-roi-qs">2–3 Qs</span><span class="st-roi-badge must-b">DO FIRST</span></div>
+        <div class="st-roi-row imp"><span class="st-ch">SHM</span><span class="st-roi-qs">2 Qs</span><span class="st-roi-badge imp-b">HIGH</span></div>
+        <div class="st-roi-row imp"><span class="st-ch">EMI &amp; AC Circuits</span><span class="st-roi-qs">2–3 Qs</span><span class="st-roi-badge imp-b">HIGH</span></div>
+        <div class="st-roi-row imp"><span class="st-ch">Thermodynamics</span><span class="st-roi-qs">2 Qs</span><span class="st-roi-badge imp-b">HIGH</span></div>
+        <div class="st-roi-row good"><span class="st-ch">Wave Optics</span><span class="st-roi-qs">1–2 Qs</span><span class="st-roi-badge good-b">MED</span></div>
+        <div class="st-roi-row skip"><span class="st-ch">Magnetism / Heat Transfer</span><span class="st-roi-qs">1 Q</span><span class="st-roi-badge skip-b">LOW</span></div>
+      </div>
+      <div class="st-roi-col">
+        <div class="st-roi-hdr" style="background:rgba(6,214,160,.1);border-color:var(--green);color:var(--green)">CHEMISTRY</div>
+        <div class="st-roi-row must"><span class="st-ch">p-Block Gr 15–17 ✦</span><span class="st-roi-qs">2–3 Qs</span><span class="st-roi-badge must-b">DO FIRST</span></div>
+        <div class="st-roi-row must"><span class="st-ch">Coordination Compounds ✦</span><span class="st-roi-qs">2–3 Qs</span><span class="st-roi-badge must-b">DO FIRST</span></div>
+        <div class="st-roi-row must"><span class="st-ch">Equilibrium</span><span class="st-roi-qs">2–3 Qs</span><span class="st-roi-badge must-b">DO FIRST</span></div>
+        <div class="st-roi-row must"><span class="st-ch">GOC &amp; Isomerism</span><span class="st-roi-qs">2–3 Qs</span><span class="st-roi-badge must-b">DO FIRST</span></div>
+        <div class="st-roi-row must"><span class="st-ch">Electrochemistry</span><span class="st-roi-qs">2–3 Qs</span><span class="st-roi-badge must-b">DO FIRST</span></div>
+        <div class="st-roi-row imp"><span class="st-ch">Aldehydes &amp; Ketones</span><span class="st-roi-qs">2–3 Qs</span><span class="st-roi-badge imp-b">HIGH</span></div>
+        <div class="st-roi-row imp"><span class="st-ch">Chemical Kinetics</span><span class="st-roi-qs">2 Qs</span><span class="st-roi-badge imp-b">HIGH</span></div>
+        <div class="st-roi-row imp"><span class="st-ch">Thermodynamics (Chem)</span><span class="st-roi-qs">2 Qs</span><span class="st-roi-badge imp-b">HIGH</span></div>
+        <div class="st-roi-row good"><span class="st-ch">Solutions</span><span class="st-roi-qs">1–2 Qs</span><span class="st-roi-badge good-b">MED</span></div>
+        <div class="st-roi-row skip"><span class="st-ch">Surface Chem / Polymers</span><span class="st-roi-qs">1 Q</span><span class="st-roi-badge skip-b">LOW</span></div>
+      </div>
+    </div>
+
+    <div class="st-section-title" style="margin-top:20px">// PYQ STRATEGY</div>
+    <div class="st-two-col">
+      <div class="st-glass">
+        <div class="st-card-title" style="color:var(--gold)">📅 Year Priority</div>
+        <div class="st-pyq-row"><span class="st-pyq-yr" style="color:var(--red)">2024</span><div class="st-pyq-bar"><div style="width:100%;background:var(--red)"></div></div><span class="st-pyq-why">Highest — will repeat in Apr 2026</span></div>
+        <div class="st-pyq-row"><span class="st-pyq-yr" style="color:var(--orange)">2023</span><div class="st-pyq-bar"><div style="width:90%;background:var(--orange)"></div></div><span class="st-pyq-why">Very high — same difficulty + mix</span></div>
+        <div class="st-pyq-row"><span class="st-pyq-yr" style="color:var(--gold)">2022</span><div class="st-pyq-bar"><div style="width:80%;background:var(--gold)"></div></div><span class="st-pyq-why">High — post-new pattern</span></div>
+        <div class="st-pyq-row"><span class="st-pyq-yr" style="color:var(--blue)">2021</span><div class="st-pyq-bar"><div style="width:60%;background:var(--blue)"></div></div><span class="st-pyq-why">Good — transition year</span></div>
+        <div class="st-pyq-row"><span class="st-pyq-yr" style="color:var(--txt2)">2020</span><div class="st-pyq-bar"><div style="width:50%;background:var(--txt2)"></div></div><span class="st-pyq-why">Useful — Physics especially</span></div>
+        <div style="margin-top:10px;padding:8px 10px;background:rgba(255,209,102,.07);border-radius:5px;font-size:11px;color:var(--gold);font-family:'JetBrains Mono',monospace">✦ Minimum 5 years · Never skip 2024</div>
+      </div>
+      <div class="st-glass">
+        <div class="st-card-title" style="color:var(--neon)">⚡ How to Use MathonGo Top 500</div>
+        <div class="st-tip-list">
+          <div class="st-tip-item"><span class="st-tip-num" style="background:rgba(0,245,212,.1);color:var(--neon)">1</span><div><b>20 Qs per chapter, timed.</b> Set 30 min. Attempt without solutions — this reveals your real level.</div></div>
+          <div class="st-tip-item"><span class="st-tip-num" style="background:rgba(0,245,212,.1);color:var(--neon)">2</span><div><b>Stop at 80%+ accuracy.</b> Don't over-drill one topic. Move on when you consistently hit 80%+.</div></div>
+          <div class="st-tip-item"><span class="st-tip-num" style="background:rgba(0,245,212,.1);color:var(--neon)">3</span><div><b>Log every error.</b> Wrong + slow correct both go in error log. This IS your revision list.</div></div>
+          <div class="st-tip-item"><span class="st-tip-num" style="background:rgba(0,245,212,.1);color:var(--neon)">4</span><div><b>Do Block 1 first every morning.</b> Block 1 chapters appear most in paper — highest ROI per hour.</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="st-section-title" style="margin-top:20px">// MOCK TEST — 3 Round Strategy</div>
+    <div class="st-two-col">
+      <div class="st-glass">
+        <div class="st-card-title" style="color:var(--orange)">🎯 3-Round Attempt</div>
+        <div class="st-mock-row"><div class="st-mock-rd" style="color:var(--neon)">Round 1 · 50 min</div><div class="st-mock-desc">Quick sweep — solve anything under 90 sec. Mark doubtful. Never get stuck.</div></div>
+        <div class="st-mock-row"><div class="st-mock-rd" style="color:var(--gold)">Round 2 · 80 min</div><div class="st-mock-desc">Return to marked. Use elimination. Integer type: only attempt if 80%+ confident.</div></div>
+        <div class="st-mock-row"><div class="st-mock-rd" style="color:var(--orange)">Round 3 · 50 min</div><div class="st-mock-desc">Remaining MCQs: guess if 2 options eliminated. Never guess integer.</div></div>
+      </div>
+      <div class="st-glass">
+        <div class="st-card-title" style="color:var(--red)">⚠️ Mistakes That Kill Marks</div>
+        <div class="st-tip-list">
+          <div class="st-tip-item"><span class="st-tip-num" style="background:rgba(255,56,96,.1);color:var(--red)">✗</span><div><b>8 min on one hard Q in Round 1.</b> Costs you 2 easy questions elsewhere.</div></div>
+          <div class="st-tip-item"><span class="st-tip-num" style="background:rgba(255,56,96,.1);color:var(--red)">✗</span><div><b>Guessing integer type.</b> Integer has -1 marking. Most students don't know this.</div></div>
+          <div class="st-tip-item"><span class="st-tip-num" style="background:rgba(255,56,96,.1);color:var(--red)">✗</span><div><b>Not reviewing correct answers.</b> You might be slow or using wrong method.</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="st-section-title" style="margin-top:20px">// DAILY NON-NEGOTIABLES</div>
+    <div class="st-daily-grid">
+      <div class="st-daily-item" id="sdn-1" onclick="toggleDaily(1)"><div class="st-daily-cb" id="sdncb-1">○</div><div><div class="st-daily-title">Math — Block PYQ (20 Qs per chapter)</div><div class="st-daily-sub">Block order. Phone off. Start at 7 AM — freshest brain hours.</div></div></div>
+      <div class="st-daily-item" id="sdn-2" onclick="toggleDaily(2)"><div class="st-daily-cb" id="sdncb-2">○</div><div><div class="st-daily-title">Physics — Block PYQ (20 Qs per chapter)</div><div class="st-daily-sub">Block order. Pathfinder + SB Tiwari. Follow today's routine timing.</div></div></div>
+      <div class="st-daily-item" id="sdn-3" onclick="toggleDaily(3)"><div class="st-daily-cb" id="sdncb-3">○</div><div><div class="st-daily-title">Full Mock — 3 hrs (today's shift timing)</div><div class="st-daily-sub">Phone away. Paper + pen only. Exam conditions. No early exit.</div></div></div>
+      <div class="st-daily-item" id="sdn-4" onclick="toggleDaily(4)"><div class="st-daily-cb" id="sdncb-4">○</div><div><div class="st-daily-title">Mock review — 2 hrs minimum</div><div class="st-daily-sub">Every question. Log errors immediately. Never skip.</div></div></div>
+      <div class="st-daily-item" id="sdn-5" onclick="toggleDaily(5)"><div class="st-daily-cb" id="sdncb-5">○</div><div><div class="st-daily-title">Chemistry — Block PYQ (1 chapter, 2h)</div><div class="st-daily-sub">Draw mechanisms. Never passive reading. Follow routine slot.</div></div></div>
+      <div class="st-daily-item" id="sdn-6" onclick="toggleDaily(6)"><div class="st-daily-cb" id="sdncb-6">○</div><div><div class="st-daily-title">Weak topic drill — 30 min</div><div class="st-daily-sub">1 topic from error log. 10 targeted questions.</div></div></div>
+      <div class="st-daily-item mandatory" id="sdn-7" onclick="toggleDaily(7)"><div class="st-daily-cb" id="sdncb-7">○</div><div><div class="st-daily-title">✦ Inorganic Chem — 9:00–9:30 PM (MANDATORY)</div><div class="st-daily-sub">Every night without exception. Rotate: p-block → d-block → Coord → s-block.</div></div></div>
+      <div class="st-daily-item" id="sdn-8" onclick="toggleDaily(8)"><div class="st-daily-cb" id="sdncb-8">○</div><div><div class="st-daily-title">Formula revision + next day plan — 9:30–10:15 PM</div><div class="st-daily-sub">Plan tonight. Eliminate morning decision fatigue. Sleep 10:30 PM.</div></div></div>
+    </div>
+    <div style="text-align:center;margin-top:8px;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--txt3)">click to mark done today — auto-resets tomorrow</div>
+  </div>
+
+  <!-- CHEM RETENTION -->
+  <div class="panel" id="panel-chem-ret">
+    <div style="font-family:'Orbitron',monospace;font-size:20px;font-weight:700;color:var(--green);margin-bottom:4px">🧪 Chem Retention Tracker</div>
+    <div style="font-size:12px;color:var(--txt2);margin-bottom:14px">Tick Day 1 → Day 3 → Day 7 → Day 14 for every chapter. After Day 14 = permanent memory.</div>
+    <div class="crt-rule-box">
+      <div class="crt-rule-title">// Spaced Repetition Protocol</div>
+      <div class="crt-rule-body">
+        <span class="crt-day-badge d1">Day 1</span> Study fully → <span class="crt-day-badge d3">Day 3</span> Quick recall (15 min) → <span class="crt-day-badge d7">Day 7</span> Blank paper test → <span class="crt-day-badge d14">Day 14</span> 10 PYQs + seal →
+        <span style="color:var(--green);font-weight:700;font-size:12px">PERMANENT ✓</span>
+      </div>
+    </div>
+    <div class="crt-section-hdr" style="background:rgba(255,209,102,.08);border-color:rgba(255,209,102,.3);color:var(--gold)">✦ INORGANIC — Revise every night 30 min</div>
+    <div class="crt-chapters-grid" id="crt-inorg"></div>
+    <div class="crt-section-hdr" style="background:rgba(168,85,247,.08);border-color:rgba(168,85,247,.3);color:#b388ff">ORGANIC — Draw mechanisms every time</div>
+    <div class="crt-chapters-grid" id="crt-org"></div>
+    <div class="crt-section-hdr" style="background:rgba(76,201,240,.08);border-color:rgba(76,201,240,.3);color:var(--blue)">PHYSICAL — Formula + numerical practice</div>
+    <div class="crt-chapters-grid" id="crt-phy-chem"></div>
+  </div>
+
+  <!-- DAILY ROUTINE -->
+  <div class="panel" id="panel-routine">
+    <div style="font-family:'Orbitron',monospace;font-size:20px;font-weight:700;color:var(--neon);margin-bottom:4px">⏰ Daily Time-Wise Routine</div>
+    <div style="font-size:12px;color:var(--txt2);margin-bottom:14px">Every day = full 3h mock (real JEE timing) + 3h each subject. Alternate Shift 1 (9–12) and Shift 2 (3–6).</div>
+
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap">
+      <button class="rtn-shift-btn active-shift" id="rtn-btn-s1" onclick="switchShift(1)">🌅 Shift 1 Mock Day (9 AM–12 PM)</button>
+      <button class="rtn-shift-btn" id="rtn-btn-s2" onclick="switchShift(2)">🌆 Shift 2 Mock Day (3 PM–6 PM)</button>
+      <div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--txt3);padding:5px 10px;background:rgba(255,209,102,.06);border:1px solid rgba(255,209,102,.2);border-radius:4px">Alternate every day · Both shifts = real JEE exam timings</div>
+    </div>
+
+    <div class="rtn-today-banner" id="rtnTodayBanner"></div>
+    <div class="rtn-grid" id="rtn-grid"></div>
+    <div class="rtn-note">
+      <div class="rtn-note-title">// Routine Principles</div>
+      <div class="rtn-note-grid">
+        <div class="rtn-note-item"><span class="rtn-note-icon">🎯</span><div><b>Daily full mock, real JEE timing.</b> Shift 1 (9–12 PM) one day, Shift 2 (3–6 PM) next. Alternating daily builds both shifts equally.</div></div>
+        <div class="rtn-note-item"><span class="rtn-note-icon">🧠</span><div><b>Math first, always.</b> Shift 1: Math 7–9 AM (2h, 1 ch). Shift 2: Math 7–10 AM (3h, 2 ch). Freshest brain = hardest subject.</div></div>
+        <div class="rtn-note-item"><span class="rtn-note-icon">📋</span><div><b>2h mock review is non-negotiable.</b> S1: 1–3 PM right after lunch. S2: 6:30–8:30 PM after mock. This is where the score actually improves.</div></div>
+        <div class="rtn-note-item"><span class="rtn-note-icon">✦</span><div><b>Inorganic 9–9:30 PM every night.</b> 30 min × 67 days = 60+ revisions. Then formula plan 9:30–10:15 PM. Sleep 10:30 PM sharp.</div></div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- end .main -->
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ══════════════════════════════════════════
+// JSONBIN CONFIG — paste your keys here
+// ══════════════════════════════════════════
+var JSONBIN_API_KEY  = "$2a$10$69b3df40c3097a1dd52020dd";
+var JSONBIN_BIN_ID   = "69b3ded7b7ec241ddc657851";
+
+// ══════════════════════════════════════════
+// STATE
+// ══════════════════════════════════════════
+var S_DEFAULT = {
+  tasks:{}, scores:[], errors:[], ratings:{},
+  week:0, streak:0, lastActive:null,
+  tp:{}, tpacc:{}, blk:{}, crt:{},
+  daily:{date:null,done:{}}
+};
+var S;
+try {
+  var _saved = localStorage.getItem('jee2026_state');
+  S = _saved ? JSON.parse(_saved) : JSON.parse(JSON.stringify(S_DEFAULT));
+  Object.keys(S_DEFAULT).forEach(function(k){ if(S[k]===undefined) S[k]=JSON.parse(JSON.stringify(S_DEFAULT[k])); });
+} catch(e) { S = JSON.parse(JSON.stringify(S_DEFAULT)); }
+
+// ── Sync status badge ──
+function showSyncStatus(msg, col){
+  var el = document.getElementById('syncStatus');
+  if(el){ el.textContent = msg; el.style.color = col||'var(--neon)'; }
+}
+
+// ── Save: localStorage instantly + JSONBin debounced ──
+var _saveTimer = null;
+function saveS(){
+  try { localStorage.setItem('jee2026_state', JSON.stringify(S)); } catch(e){}
+  if(JSONBIN_API_KEY==='PASTE_YOUR_API_KEY_HERE') return; // not configured yet
+  clearTimeout(_saveTimer);
+  _saveTimer = setTimeout(function(){
+    showSyncStatus('Saving...','var(--gold)');
+    fetch('https://api.jsonbin.io/v3/b/'+JSONBIN_BIN_ID, {
+      method:'PUT',
+      headers:{
+        'Content-Type':'application/json',
+        'X-Master-Key': JSONBIN_API_KEY,
+        'X-Bin-Versioning':'false'
+      },
+      body: JSON.stringify(S)
+    })
+    .then(function(r){ return r.ok ? showSyncStatus('✓ Synced','var(--green)') : showSyncStatus('⚠ Save failed','var(--red)'); })
+    .catch(function(){ showSyncStatus('⚠ Offline','var(--red)'); });
+  }, 1500);
+}
+
+// ── Load from JSONBin on page open ──
+function loadFromCloud(){
+  if(JSONBIN_API_KEY==='PASTE_YOUR_API_KEY_HERE'){
+    showSyncStatus('⚙ Setup needed','var(--gold)'); return;
+  }
+  showSyncStatus('Syncing...','var(--gold)');
+  fetch('https://api.jsonbin.io/v3/b/'+JSONBIN_BIN_ID+'/latest', {
+    headers:{ 'X-Master-Key': JSONBIN_API_KEY }
+  })
+  .then(function(r){ return r.json(); })
+  .then(function(data){
+    if(!data.record) return;
+    var cloudS = data.record;
+    Object.keys(S_DEFAULT).forEach(function(k){ if(cloudS[k]===undefined) cloudS[k]=JSON.parse(JSON.stringify(S_DEFAULT[k])); });
+    S = cloudS;
+    try{ localStorage.setItem('jee2026_state', JSON.stringify(S)); }catch(e){}
+    renderP1(); renderP2(); renderP3(); renderExam();
+    renderScoreHist(); renderChart(); updateMilestones();
+    renderErrors(); buildRatings(); updateStats(); updateStreak();
+    showSyncStatus('✓ Cloud loaded','var(--green)');
+  })
+  .catch(function(){ showSyncStatus('⚠ Offline — local data','var(--red)'); });
+}
+
+// ── Reset all data ──
+function resetData(){
+  if(!confirm('Reset ALL saved data everywhere? Cannot be undone.')) return;
+  S = JSON.parse(JSON.stringify(S_DEFAULT));
+  try{ localStorage.removeItem('jee2026_state'); }catch(e){}
+  saveS();
+  location.reload();
+}
+
+// ══════════════════════════════════════════
+// PHASE DATA
+// ══════════════════════════════════════════
+var TASKS = [
+  {id:'math', lbl:'Math — Block PYQ (20 Qs per chapter)'},
+  {id:'phys', lbl:'Physics — Block PYQ (20 Qs per chapter)'},
+  {id:'mock', lbl:'Full Mock — 3 hrs (today\'s shift timing)'},
+  {id:'review', lbl:'Mock review + Error log (2 hrs min)'},
+  {id:'chem', lbl:'Chemistry — Block PYQ (1 chapter, 2h)'},
+  {id:'weak', lbl:'Weak topic drilling (30 min)'},
+  {id:'inorg', lbl:'✦ Inorganic Chem revision — 9:00–9:30 PM'},
+  {id:'formula', lbl:'Formula revision + next day plan — 9:30–10:15 PM'},
+];
+var ADV_TASKS = [
+  {id:'adv_phy', lbl:'Adv Physics — hard problems (2.5 hrs)'},
+  {id:'adv_math', lbl:'Adv Math — multi-step problems (2.5 hrs)'},
+  {id:'adv_chem', lbl:'Adv Chem — Inorganic + Organic (2 hrs)'},
+  {id:'pyq_adv', lbl:'PYQ Analysis — Adv 2020–2024'},
+  {id:'weak_adv', lbl:'Weak area fix from last mock'},
+  {id:'inorg', lbl:'✦ Inorganic 30 min (nightly)'},
+];
+var ADV_MOCK_TASKS = [
+  {id:'mock_p1', lbl:'Paper 1 — 3 hrs (exam conditions)'},
+  {id:'mock_p2', lbl:'Paper 2 — 3 hrs (exam conditions)'},
+  {id:'review_adv', lbl:'Both papers review — 3 hrs min'},
+  {id:'err_adv', lbl:'Log all errors + concept gaps'},
+];
+var EXAM_TASKS = [
+  {id:'light_rev', lbl:'Light revision only — formula glance'},
+  {id:'walk', lbl:'30 min walk in fresh air'},
+  {id:'sleep_early', lbl:'Sleep by 9:30 PM sharp'},
+];
+
+function tk(dayId, tid){ return dayId+'__'+tid; }
+
+var P1_DAYS = [
+  {id:'mar10',day:'MON · 10 MAR',focus:'English Board Exam — all prep done. Execute.',exam:true,slot:'Board Exam'},
+  {id:'mar11',day:'TUE · 11 MAR',focus:'English Board Exam Day 2 — stay calm, write well.',exam:true,slot:'Board Exam'},
+];
+
+var P2_WEEKS = [
+  { label:'Week 2 · Mar 13–19 · 🔴 Block 1', sub:'Alternating shifts daily · Block 1 priority · Music Board Mar 17',
+    days:[
+      {id:'mar13',day:'THU · 13 MAR',focus:'[S1] Math B1: Seq+Series (2h) · Phys B1: Curr Elec, Ray Optics (3h) · Chem B1: GOC (2h)',slot:'7AM–10:30PM'},
+      {id:'mar14',day:'FRI · 14 MAR',focus:'[S2] Math B1: Def Integration, Vectors (3h) · Phys B1: Rotation (1h) · Chem B1: Amines (2h)',slot:'7AM–10:30PM'},
+      {id:'mar15',day:'SAT · 15 MAR',focus:'[S1] Math B1: Matrices+Det (2h) · Phys B1: EMI, Fluids (3h) · Chem B1: Atomic Str (2h)',slot:'7AM–10:30PM'},
+      {id:'mar16',day:'SUN · 16 MAR',focus:'[S2] Math B1: P&C ✓B1 (3h) · Phys B1: EM Waves, Nuclear ✓B1 (1h) · Chem B2: Kinetics (2h) · 🔴 ALL B1 DONE',slot:'7AM–10:30PM'},
+      {id:'mar17',day:'MON · 17 MAR',focus:'MUSIC BOARD — Travel. 7 PM: Math B2 Functions · Phys B2 Atomic Physics · Chem B2 Periodic Table, Hydrocarbons',type:'travel',slot:'7PM start'},
+      {id:'mar18',day:'TUE · 18 MAR',focus:'[S1] Math B2: Binomial (2h) · Phys B2: Dual Nature, Laws of Motion (3h) · Chem B2: Alcohols+Phenols (2h)',slot:'7AM–10:30PM'},
+      {id:'mar19',day:'WED · 19 MAR',focus:'[S2] Math B2: Circle, Complex Nos (3h) · Phys B2: Semiconductors (1h) · Chem B2: d+f Block (2h) · + MOCK',slot:'7AM–10:30PM'},
+    ]
+  },
+  { label:'Week 3 · Mar 20–26 · 🟡 Block 2 + Start B3', sub:'Alternating shifts · Chem finishes Mar 24!',
+    days:[
+      {id:'mar20',day:'THU · 20 MAR',focus:'[S1] Math B2: Quadratic (2h) · Phys B2: Thermodynamics, Wave Optics (3h) · Chem B2: Electrochemistry (2h)',slot:'7AM–10:30PM'},
+      {id:'mar21',day:'FRI · 21 MAR',focus:'[S2] Math B3: Trig Ratios, Sets+Relations (3h) · Phys B2: Units+Dim ✓B2 (1h) · Chem B3: Ald+Ketones, Chem Eq ✓B3 (2h) · 🟡 B2 DONE',slot:'7AM–10:30PM'},
+      {id:'mar22',day:'SAT · 22 MAR',focus:'[S1] Math B3: Ellipse (2h) · Phys B3: Oscillations, Waves+Sound (3h) · Chem B4: Ionic Eq (2h) · + MOCK',slot:'7AM–10:30PM'},
+      {id:'mar23',day:'SUN · 23 MAR',focus:'[S2] Math B3: Parabola, Continuity+Diff (3h) · Phys B3: Capacitance (1h) · Chem B4: Mole Concept, Redox (2h)',slot:'7AM–10:30PM'},
+      {id:'mar24',day:'MON · 24 MAR',focus:'[S1] Math B3: Statistics (2h) · Phys B3: Gravitation, KTG (3h) · Chem B4: Practical Chem, Carboxylic Acid ✅ ALL CHEM DONE 🎯 (2h)',slot:'7AM–10:30PM'},
+      {id:'mar25',day:'TUE · 25 MAR',focus:'[S2] Math B3: Straight Lines ✓B3, AOD (3h) · Phys B3: Thermal Props (1h) · Chem: Error log + full revision (2h)',slot:'7AM–10:30PM'},
+      {id:'mar26',day:'WED · 26 MAR',focus:'[S1] Math B4: Hyperbola (2h) · Phys B3: WPE ✓B3, AC Circuits (3h) · Chem: Organic PYQ revision (2h) · + MOCK',slot:'7AM–10:30PM'},
+    ]
+  },
+  { label:'Week 4 · Mar 27–30 · ⚪ Block 4 Finish + MOCK', sub:'Biology Mar 27 (travel) · ALL 83 chapters done by Mar 29 · Mar 30 = FULL MOCK 🎯',
+    days:[
+      {id:'mar27',day:'THU · 27 MAR',focus:'BIOLOGY BOARD — Travel. 7 PM: Math B4 Basics of Math · Phys B4 COM · Chem: Inorganic full revision',type:'travel',slot:'7PM start'},
+      {id:'mar28',day:'FRI · 28 MAR',focus:'[S2] Math B4: Inverse Trig, Differentiation ✅ ALL MATH DONE 🎯 (3h) · Phys B4: Exp Physics (1h) · Chem: Organic mechanisms revision (2h) · + MOCK',slot:'7AM–10:30PM'},
+      {id:'mar29',day:'SAT · 29 MAR',focus:'[S1] Math: Weakest chapters revision (2h) · Phys B4: Motion 1D, Motion 2D, Math-in-Phys, Mech Solids, Mag Props ✅ ALL PHYS DONE 🎯 (3h) · Chem: All-subject error log (2h) · ⚡ 83/83 DONE',slot:'7AM–10:30PM'},
+      {id:'mar30',day:'SUN · 30 MAR',focus:'🏆 FULL MOCK — ALL BLOCKS DONE. Target 260+ · Full 3h exam + 2h review · Log every error · Rest well tonight.',slot:'7AM–10:30PM'},
+    ]
+  },
+  { label:'Week 5 · Apr 2–9 · 🎯 EXAM WINDOW', sub:'Any day Apr 2–9 is your exam — stay sharp every day!',
+    days:[
+      {id:'apr02',day:'THU · 02 APR',focus:'🎯 JEE MAINS — Possible EXAM DAY',exam:true,slot:''},
+      {id:'apr03',day:'FRI · 03 APR',focus:'🎯 JEE MAINS — Possible EXAM DAY',exam:true,slot:''},
+      {id:'apr04',day:'SAT · 04 APR',focus:'🎯 JEE MAINS — Possible EXAM DAY',exam:true,slot:''},
+      {id:'apr05',day:'SUN · 05 APR',focus:'🎯 JEE MAINS — Possible EXAM DAY',exam:true,slot:''},
+      {id:'apr06',day:'MON · 06 APR',focus:'🎯 JEE MAINS — Possible EXAM DAY',exam:true,slot:''},
+      {id:'apr07',day:'TUE · 07 APR',focus:'🎯 JEE MAINS — Possible EXAM DAY',exam:true,slot:''},
+      {id:'apr08',day:'WED · 08 APR',focus:'🎯 JEE MAINS — Possible EXAM DAY',exam:true,slot:''},
+      {id:'apr09',day:'THU · 09 APR',focus:'🎯 JEE MAINS — Possible EXAM DAY',exam:true,slot:''},
+    ]
+  },
+];
+
+var P3_DAYS = [
+  {id:'apr10',day:'THU · 10 APR',focus:'Adv Physics Mechanics hard | Adv Math Algebra'},
+  {id:'apr11',day:'FRI · 11 APR',focus:'Adv Chem Organic mechanisms | Adv Math Calculus'},
+  {id:'apr12',day:'SAT · 12 APR',focus:'★ ADV MOCK — Both Papers (6 hrs)',adv_mock:true},
+  {id:'apr13',day:'SUN · 13 APR',focus:'Adv Physics Electrostatics | Adv Chem Inorganic'},
+  {id:'apr14',day:'MON · 14 APR',focus:'Weak fix from mock | PYQ 2024 analysis'},
+  {id:'apr15',day:'TUE · 15 APR',focus:'★ ADV MOCK — Both Papers',adv_mock:true},
+  {id:'apr16',day:'WED · 16 APR',focus:'Adv Math Coord Geo | Adv Physics Optics'},
+  {id:'apr17',day:'THU · 17 APR',focus:'Adv Math Vectors+3D | Adv Chem Electrochemistry'},
+  {id:'apr18',day:'FRI · 18 APR',focus:'★ ADV MOCK — Both Papers',adv_mock:true},
+  {id:'apr19',day:'SAT · 19 APR',focus:'Adv Physics Rotation | Complex Numbers hard'},
+  {id:'apr20',day:'SUN · 20 APR',focus:'Weak areas from mock | PYQ Adv 2023'},
+  {id:'apr21',day:'MON · 21 APR',focus:'★ ADV MOCK — Both Papers',adv_mock:true},
+  {id:'apr22',day:'TUE · 22 APR',focus:'Adv Chem Solid State | Fluids'},
+  {id:'apr23',day:'WED · 23 APR',focus:'★ ADV MOCK — Both Papers',adv_mock:true},
+  {id:'apr24',day:'THU · 24 APR',focus:'Adv Math DI+DE | Coord Compounds deep'},
+  {id:'apr25',day:'FRI · 25 APR',focus:'PYQ Adv 2019 targeted | Weak concepts'},
+  {id:'apr26',day:'SAT · 26 APR',focus:'★ ADV MOCK — Both Papers',adv_mock:true},
+  {id:'apr27',day:'SUN · 27 APR',focus:'Adv Physics SHM+Waves | Qualitative Analysis'},
+  {id:'apr28',day:'MON · 28 APR',focus:'PYQ 2016+2015 targeted | Weak fixes'},
+  {id:'apr29',day:'TUE · 29 APR',focus:'★ ADV MOCK — Both Papers',adv_mock:true},
+  {id:'apr30',day:'WED · 30 APR',focus:'Integer-type practice all subjects'},
+  {id:'may01',day:'THU · 01 MAY',focus:'Adv Physics EMI+AC | Adv Math Matrices'},
+  {id:'may02',day:'FRI · 02 MAY',focus:'★ ADV MOCK — Both Papers',adv_mock:true},
+  {id:'may03',day:'SAT · 03 MAY',focus:'All Inorganic revision day | p+d+coord+s'},
+  {id:'may04',day:'SUN · 04 MAY',focus:'★ ADV MOCK — Both Papers',adv_mock:true},
+  {id:'may05',day:'MON · 05 MAY',focus:'Math weak: Probability+Permutation hard'},
+  {id:'may06',day:'TUE · 06 MAY',focus:'Physics weak: Rotation + Capacitors hard'},
+  {id:'may07',day:'WED · 07 MAY',focus:'★ ADV MOCK — Both Papers',adv_mock:true},
+  {id:'may08',day:'THU · 08 MAY',focus:'Final Organic + GOC deep revision'},
+  {id:'may09',day:'FRI · 09 MAY',focus:'★ ADV MOCK — Both Papers',adv_mock:true},
+  {id:'may10',day:'SAT · 10 MAY',focus:'Full error log review | All subjects'},
+  {id:'may11',day:'SUN · 11 MAY',focus:'Calm day — light PYQ only | REST afternoon'},
+  {id:'may12',day:'MON · 12 MAY',focus:'Quick formula scan all subjects'},
+  {id:'may13',day:'TUE · 13 MAY',focus:'Final formula sheets | Early sleep 9 PM'},
+  {id:'may14',day:'WED · 14 MAY',focus:'REST — walk, eat well. You are ready.'},
+];
+
+var EXAM_DAYS = [
+  {id:'may15',day:'THU · 15 MAY',focus:'Light Physics revision | Walk | Sleep 9:30 PM'},
+  {id:'may16',day:'FRI · 16 MAY',focus:'Light Math revision | Formula glance | Sleep 9:30 PM'},
+  {id:'may17',day:'SAT · 17 MAY',focus:'🎯 JEE ADVANCED EXAM DAY — Execute everything you have built!',exam:true},
+];
+
+// ══════════════════════════════════════════
+// RENDER HELPERS
+// ══════════════════════════════════════════
+function stdCard(d, taskList, accentClass, phase){
+  var doneAll = taskList.every(function(t){ return S.tasks[tk(d.id,t.id)]; });
+  var tasks = taskList.map(function(t){
+    var done = S.tasks[tk(d.id,t.id)];
+    return '<div class="task-item '+(done?'done':'')+'" onclick="tickTask(\''+d.id+'\',\''+t.id+'\')">' +
+      '<div class="t-cb">'+(done?'✓':'')+'</div>' +
+      '<span class="task-lbl">'+t.lbl+'</span></div>';
+  }).join('');
+  return '<div class="day-card'+(d.exam?' exam-day':'')+'">'+
+    '<div class="day-accent '+accentClass+'"></div>'+
+    '<div class="day-head">'+
+      '<div class="day-label">'+d.day+'</div>'+
+      (d.slot?'<div style="font-family:\'JetBrains Mono\',monospace;font-size:9px;color:var(--txt3)">'+d.slot+'</div>':'')+'</div>'+
+    '<div class="day-focus">'+d.focus+'</div>'+
+    '<div class="task-list">'+tasks+'</div></div>';
+}
+function travelCard(d){
+  return '<div class="day-card" style="border-color:rgba(255,209,102,.3)">'+
+    '<div class="day-accent" style="background:var(--gold)"></div>'+
+    '<div class="day-head"><div class="day-label" style="color:var(--gold)">'+d.day+'</div><div style="font-family:\'JetBrains Mono\',monospace;font-size:9px;color:var(--gold)">TRAVEL DAY</div></div>'+
+    '<div class="day-focus">'+d.focus+'</div></div>';
+}
+function boardCard(d){
+  return '<div class="day-card exam-day">'+
+    '<div class="day-accent p1-accent"></div>'+
+    '<div class="day-head"><div class="day-label">'+d.day+'</div></div>'+
+    '<div class="day-focus">'+d.focus+'</div></div>';
+}
+
+function renderP1(){
+  document.getElementById('grid-p1').innerHTML = P1_DAYS.map(function(d){
+    if(d.type==='travel') return travelCard(d);
+    if(d.exam) return boardCard(d);
+    return stdCard(d, TASKS, 'p1-accent', 'p1');
+  }).join('');
+}
+
+var curWeek = 0;
+function renderP2(){
+  var w = P2_WEEKS[curWeek];
+  document.getElementById('week-title').textContent = w.label;
+  document.getElementById('week-sub').textContent = w.sub;
+  document.getElementById('grid-p2').innerHTML = w.days.map(function(d){
+    if(d.type==='travel') return travelCard(d);
+    if(d.exam) return '<div class="day-card exam-day"><div class="day-accent p2-accent"></div><div class="day-head"><div class="day-label">'+d.day+'</div></div><div class="day-focus">'+d.focus+'</div></div>';
+    return stdCard(d, TASKS, 'p2-accent', 'p2');
+  }).join('');
+}
+function changeWeek(dir){
+  curWeek = Math.max(0, Math.min(P2_WEEKS.length-1, curWeek+dir));
+  renderP2();
+}
+
+function renderP3(){
+  document.getElementById('grid-p3').innerHTML = P3_DAYS.map(function(d){
+    var tl = d.adv_mock ? ADV_MOCK_TASKS : ADV_TASKS;
+    return stdCard(d, tl, 'p3-accent', 'p3');
+  }).join('');
+}
+
+function renderExam(){
+  document.getElementById('grid-exam').innerHTML = EXAM_DAYS.map(function(d){
+    return stdCard(d, EXAM_TASKS, 'exam-accent', 'exam');
+  }).join('');
+}
+
+function tickTask(dayId, tid){
+  var k = tk(dayId, tid);
+  S.tasks[k] = !S.tasks[k];
+  saveS();
+  updateStats();
+  renderP1(); renderP2(); renderP3(); renderExam();
+  if(S.tasks[k]) toast('✓ Task done!');
+}
+
+// ══════════════════════════════════════════
+// BLOCK REVISION DATA (MathonGo PDF)
+// ══════════════════════════════════════════
+var BLK_MATH = [
+  {id:'bm1',n:'Sequences and Series',blk:'b1',qs:20,day:'Mar 13 [S1] Math 2h'},
+  {id:'bm2',n:'Three-Dimensional Geometry',blk:'b1',qs:20,day:'Mar 14 [S2] Math 3h (ch1)'},
+  {id:'bm3',n:'Definite Integration',blk:'b1',qs:20,day:'Mar 14 [S2] Math 3h (ch2)'},
+  {id:'bm4',n:'Vector Algebra',blk:'b1',qs:20,day:'Mar 15 [S1] Math 2h'},
+  {id:'bm5',n:'Matrices & Determinants',blk:'b1',qs:20,day:'Mar 16 [S2] Math 3h (ch1)'},
+  {id:'bm6',n:'Permutation & Combination',blk:'b1',qs:20,day:'Mar 16 [S2] Math 3h (ch2) ✓ B1 Done'},
+  {id:'bm7',n:'Differential Equations',blk:'b2',qs:20,day:'Mar 18 [S1] Math 2h'},
+  {id:'bm8',n:'Area Under Curves',blk:'b2',qs:20,day:'Mar 19 [S2] Math 3h (ch1)'},
+  {id:'bm9',n:'Functions',blk:'b2',qs:20,day:'Mar 17 eve (travel)'},
+  {id:'bm10',n:'Binomial Theorem',blk:'b2',qs:20,day:'Mar 19 [S2] Math 3h (ch2)'},
+  {id:'bm11',n:'Circle',blk:'b2',qs:20,day:'Mar 20 [S1] Math 2h'},
+  {id:'bm12',n:'Complex Number',blk:'b2',qs:20,day:'Mar 21 [S2] Math 3h (ch1)'},
+  {id:'bm13',n:'Probability',blk:'b2',qs:20,day:'Mar 21 [S2] Math 3h (ch2)'},
+  {id:'bm14',n:'Quadratic Equation',blk:'b2',qs:20,day:'Mar 22 [S1] Math 2h ✓ B2 Done'},
+  {id:'bm15',n:'Sets and Relations',blk:'b3',qs:20,day:'Mar 23 [S2] Math 3h (ch1)'},
+  {id:'bm16',n:'Trigonometric Ratios',blk:'b3',qs:20,day:'Mar 23 [S2] Math 3h (ch2)'},
+  {id:'bm17',n:'Ellipse',blk:'b3',qs:20,day:'Mar 24 [S1] Math 2h'},
+  {id:'bm18',n:'Parabola',blk:'b3',qs:20,day:'Mar 25 [S2] Math 3h (ch1)'},
+  {id:'bm19',n:'Continuity & Differentiability',blk:'b3',qs:20,day:'Mar 25 [S2] Math 3h (ch2)'},
+  {id:'bm20',n:'Statistics',blk:'b3',qs:20,day:'Mar 26 [S1] Math 2h'},
+  {id:'bm21',n:'Straight Lines',blk:'b3',qs:20,day:'Mar 27 eve (travel) ✓ B3 Done'},
+  {id:'bm22',n:'Application of Derivatives',blk:'b4',qs:20,day:'Mar 28 [S2] Math 3h (ch1)'},
+  {id:'bm23',n:'Hyperbola',blk:'b4',qs:20,day:'Mar 28 [S2] Math 3h (ch2)'},
+  {id:'bm24',n:'Inverse Trigonometric Func',blk:'b4',qs:20,day:'Mar 27 eve (travel)'},
+  {id:'bm25',n:'Indefinite Integration',blk:'b4',qs:20,day:'Mar 27 eve (travel)'},
+  {id:'bm26',n:'Limits',blk:'b4',qs:20,day:'Mar 29 [S1] Math 2h'},
+  {id:'bm27',n:'Trigonometric Equations',blk:'b4',qs:20,day:'Mar 29 [S1] Math 2h'},
+  {id:'bm28',n:'Basics of Mathematics',blk:'b4',qs:20,day:'Mar 28 [S2] Math 3h (ch3 eve)'},
+  {id:'bm29',n:'Differentiation',blk:'b4',qs:20,day:'Mar 29 [S1] ✅ ALL MATH DONE 🎯'},
+];
+
+var BLK_PHY = [
+  {id:'bp1',n:'Current Electricity',blk:'b1',qs:20,day:'Mar 13 [S1] Phys 3h (ch1)'},
+  {id:'bp2',n:'Ray Optics',blk:'b1',qs:20,day:'Mar 13 [S1] Phys 3h (ch2)'},
+  {id:'bp3',n:'Rotational Motion',blk:'b1',qs:20,day:'Mar 14 [S2] Phys 1h'},
+  {id:'bp4',n:'Electrostatics',blk:'b1',qs:20,day:'Mar 15 [S1] Phys 3h (ch1)'},
+  {id:'bp5',n:'Electromagnetic Induction',blk:'b1',qs:20,day:'Mar 15 [S1] Phys 3h (ch2)'},
+  {id:'bp6',n:'Mechanical Properties of Fluids',blk:'b1',qs:20,day:'Mar 16 [S2] Phys 1h (partial)'},
+  {id:'bp7',n:'Electromagnetic Waves',blk:'b1',qs:20,day:'Mar 16 [S2] ✓ B1 Done'},
+  {id:'bp8',n:'Nuclear Physics',blk:'b2',qs:20,day:'Mar 17 eve (travel)'},
+  {id:'bp9',n:'Atomic Physics',blk:'b2',qs:20,day:'Mar 18 [S1] Phys 3h (ch1)'},
+  {id:'bp10',n:'Dual Nature of Matter',blk:'b2',qs:20,day:'Mar 18 [S1] Phys 3h (ch2)'},
+  {id:'bp11',n:'Laws of Motion',blk:'b2',qs:20,day:'Mar 19 [S2] Phys 1h'},
+  {id:'bp12',n:'Semiconductors',blk:'b2',qs:20,day:'Mar 20 [S1] Phys 3h (ch1)'},
+  {id:'bp13',n:'Magnetic Effects of Current',blk:'b2',qs:20,day:'Mar 20 [S1] Phys 3h (ch2)'},
+  {id:'bp14',n:'Thermodynamics',blk:'b2',qs:20,day:'Mar 21 [S2] Phys 1h (partial)'},
+  {id:'bp15',n:'Wave Optics',blk:'b2',qs:20,day:'Mar 22 [S1] Phys 3h (ch1)'},
+  {id:'bp16',n:'Units and Dimensions',blk:'b2',qs:20,day:'Mar 22 [S1] ✓ B2 Done'},
+  {id:'bp17',n:'Oscillations (SHM)',blk:'b3',qs:20,day:'Mar 22 [S1] Phys 3h (ch2)'},
+  {id:'bp18',n:'Waves and Sound',blk:'b3',qs:20,day:'Mar 23 [S2] Phys 1h'},
+  {id:'bp19',n:'Capacitance',blk:'b3',qs:20,day:'Mar 24 [S1] Phys 3h (ch1)'},
+  {id:'bp20',n:'Gravitation',blk:'b3',qs:20,day:'Mar 24 [S1] Phys 3h (ch2)'},
+  {id:'bp21',n:'Kinetic Theory of Gases',blk:'b3',qs:20,day:'Mar 25 [S2] Phys 1h'},
+  {id:'bp22',n:'Thermal Properties of Matter',blk:'b3',qs:20,day:'Mar 26 [S1] Phys 3h (ch1)'},
+  {id:'bp23',n:'Work Power Energy',blk:'b3',qs:20,day:'Mar 26 [S1] ✓ B3 Done'},
+  {id:'bp24',n:'Alternating Current',blk:'b4',qs:20,day:'Mar 26 [S1] Phys 3h (ch2)'},
+  {id:'bp25',n:'Experimental Physics',blk:'b4',qs:20,day:'Mar 27 [S2] Phys 1h'},
+  {id:'bp26',n:'Motion in One Dimension',blk:'b4',qs:20,day:'Mar 28 [S1] Phys 3h (ch1)'},
+  {id:'bp27',n:'Motion in Two Dimensions',blk:'b4',qs:20,day:'Mar 28 [S1] Phys 3h (ch2)'},
+  {id:'bp28',n:'Centre of Mass & Collision',blk:'b4',qs:20,day:'Mar 27 eve (travel)'},
+  {id:'bp29',n:'Mathematics in Physics',blk:'b4',qs:20,day:'Mar 29 [S2] Phys 1h (ch1)'},
+  {id:'bp30',n:'Mechanical Properties of Solids',blk:'b4',qs:20,day:'Mar 29 [S2] Phys 1h (ch2)'},
+  {id:'bp31',n:'Magnetic Properties of Matter',blk:'b4',qs:20,day:'Mar 29 [S2] ✅ ALL PHYS DONE 🎯'},
+];
+
+var BLK_CHEM = [
+  {id:'bc1',n:'General Organic Chemistry',blk:'b1',qs:20,day:'Mar 13 [S1] Chem 2h'},
+  {id:'bc2',n:'Coordination Compounds',blk:'b1',qs:20,day:'Mar 14 [S2] Chem 2h'},
+  {id:'bc3',n:'Amines',blk:'b1',qs:20,day:'Mar 15 [S1] Chem 2h'},
+  {id:'bc4',n:'Solutions',blk:'b1',qs:20,day:'Mar 16 [S2] Chem 2h'},
+  {id:'bc5',n:'Structure of Atom',blk:'b1',qs:20,day:'Mar 17 eve (travel)'},
+  {id:'bc6',n:'Chemical Bonding',blk:'b1',qs:20,day:'Mar 18 [S1] Chem 2h ✓ B1 Done'},
+  {id:'bc7',n:'Chemical Kinetics',blk:'b2',qs:20,day:'Mar 19 [S2] Chem 2h'},
+  {id:'bc8',n:'Electrochemistry',blk:'b2',qs:20,day:'Mar 20 [S1] Chem 2h'},
+  {id:'bc9',n:'Periodic Table & Properties',blk:'b2',qs:20,day:'Mar 17 eve (travel)'},
+  {id:'bc10',n:'Hydrocarbons',blk:'b2',qs:20,day:'Mar 21 [S2] Chem 2h'},
+  {id:'bc11',n:'Alcohols Phenols and Ethers',blk:'b2',qs:20,day:'Mar 22 [S1] Chem 2h'},
+  {id:'bc12',n:'d and f Block Elements',blk:'b2',qs:20,day:'Mar 23 [S2] Chem 2h'},
+  {id:'bc13',n:'Haloalkanes and Haloarenes',blk:'b2',qs:20,day:'Mar 24 [S1] Chem 2h ✓ B2 Done'},
+  {id:'bc14',n:'p Block Elements',blk:'b3',qs:20,day:'Mar 25 [S2] Chem 2h'},
+  {id:'bc15',n:'Thermodynamics (Chem)',blk:'b3',qs:20,day:'Mar 26 [S1] Chem 2h'},
+  {id:'bc16',n:'Biomolecules',blk:'b3',qs:20,day:'Mar 27 eve (travel)'},
+  {id:'bc17',n:'Aldehydes and Ketones',blk:'b3',qs:20,day:'Mar 28 [S2] Chem 2h'},
+  {id:'bc18',n:'Chemical Equilibrium',blk:'b3',qs:20,day:'Mar 29 [S1] Chem 2h ✓ B3 Done'},
+  {id:'bc19',n:'Ionic Equilibrium',blk:'b4',qs:20,day:'Mar 30 Chem revision'},
+  {id:'bc20',n:'Some Basic Concepts (Mole)',blk:'b4',qs:20,day:'Mar 30 Chem revision'},
+  {id:'bc21',n:'Redox Reactions',blk:'b4',qs:20,day:'Mar 31 Chem revision'},
+  {id:'bc22',n:'Practical Chemistry',blk:'b4',qs:20,day:'Apr 1 Chem revision'},
+  {id:'bc23',n:'Carboxylic Acid Derivatives',blk:'b4',qs:20,day:'Apr 1 ✅ ALL CHEM DONE 🎯'},
+];
+
+var BLK_DAY_SCHEDULE = [
+  {day:'Day 1 · Mar 13 [S1]',content:'<b style="color:var(--blue)">Math B1 (2h):</b> Sequences+Series &nbsp;·&nbsp; <b style="color:var(--orange)">Phys B1 (3h):</b> Current Electricity, Ray Optics &nbsp;·&nbsp; <b style="color:var(--green)">Chem B1 (2h):</b> General Organic Chem'},
+  {day:'Day 2 · Mar 14 [S2]',content:'<b style="color:var(--blue)">Math B1 (3h):</b> Definite Integration, Vector Algebra &nbsp;·&nbsp; <b style="color:var(--orange)">Phys B1 (1h):</b> Rotational Motion &nbsp;·&nbsp; <b style="color:var(--green)">Chem B1 (2h):</b> Amines, Solutions'},
+  {day:'Day 3 · Mar 15 [S1]',content:'<b style="color:var(--blue)">Math B1 (2h):</b> Matrices+Det <span style="color:var(--green)">+ P&C ✓ Math B1 Done</span> &nbsp;·&nbsp; <b style="color:var(--orange)">Phys B1 (3h):</b> Electrostatics, EMI &nbsp;·&nbsp; <b style="color:var(--green)">Chem B1 (2h):</b> Structure of Atom <span style="color:var(--green)">✓ Chem B1 Done</span>'},
+  {day:'Day 4 · Mar 16 [S2]',content:'<b style="color:var(--blue)">Math B2 (3h):</b> Diff Equations, Area Under Curves &nbsp;·&nbsp; <b style="color:var(--orange)">Phys B1 (1h):</b> EM Waves, Nuclear <span style="color:var(--green)">✓ Phys B1 Done</span> &nbsp;·&nbsp; <b style="color:var(--green)">Chem B2 (2h):</b> Kinetics, Electrochemistry &nbsp;·&nbsp; 🔴 ALL BLOCK 1 DONE'},
+  {day:'Day 5 · Mar 17 ★ MUSIC',content:'<span style="color:var(--gold)">MUSIC BOARD — Travel. 7 PM only.</span> &nbsp;·&nbsp; <b style="color:var(--blue)">Math B2:</b> Functions &nbsp;·&nbsp; <b style="color:var(--orange)">Phys B2:</b> Atomic Physics &nbsp;·&nbsp; <b style="color:var(--green)">Chem B2:</b> Periodic Table, Hydrocarbons'},
+  {day:'Day 6 · Mar 18 [S1]',content:'<b style="color:var(--blue)">Math B2 (2h):</b> Binomial Theorem &nbsp;·&nbsp; <b style="color:var(--orange)">Phys B2 (3h):</b> Dual Nature, Laws of Motion &nbsp;·&nbsp; <b style="color:var(--green)">Chem B2 (2h):</b> Alcohols+Phenols+Ethers'},
+  {day:'Day 7 · Mar 19 [S2] + MOCK',content:'<b style="color:var(--blue)">Math B2 (3h):</b> Circle, Complex Number &nbsp;·&nbsp; <b style="color:var(--orange)">Phys B2 (1h):</b> Semiconductors &nbsp;·&nbsp; <b style="color:var(--green)">Chem B2 (2h):</b> d+f Block, Haloalkanes &nbsp;·&nbsp; + MOCK TEST'},
+  {day:'Day 8 · Mar 20 [S1]',content:'<b style="color:var(--blue)">Math B2 (2h):</b> Quadratic Eq &nbsp;·&nbsp; <b style="color:var(--orange)">Phys B2 (3h):</b> Thermodynamics, Wave Optics &nbsp;·&nbsp; <b style="color:var(--green)">Chem B3 (2h):</b> Thermodynamics (Chem) &nbsp;·&nbsp; Mock review'},
+  {day:'Day 9 · Mar 21 [S2]',content:'<b style="color:var(--blue)">Math B3 (3h):</b> Trig Ratios, Sets+Relations &nbsp;·&nbsp; <b style="color:var(--orange)">Phys B2 (1h):</b> Units+Dim, Oscillations <span style="color:var(--gold)">✓ Phys B2 Done</span> &nbsp;·&nbsp; <b style="color:var(--green)">Chem B3 (2h):</b> Ald+Ketones, Chemical Eq <span style="color:var(--green)">✓ Chem B3 Done</span> &nbsp;·&nbsp; 🟡 BLOCK 2 DONE'},
+  {day:'Day 10 · Mar 22 [S1] + MOCK',content:'<b style="color:var(--blue)">Math B3 (2h):</b> Ellipse &nbsp;·&nbsp; <b style="color:var(--orange)">Phys B3 (3h):</b> Waves+Sound, Capacitance &nbsp;·&nbsp; <b style="color:var(--green)">Chem B4 (2h):</b> Ionic Equilibrium &nbsp;·&nbsp; + MOCK TEST'},
+  {day:'Day 11 · Mar 23 [S2]',content:'<b style="color:var(--blue)">Math B3 (3h):</b> Parabola, Continuity+Diff &nbsp;·&nbsp; <b style="color:var(--orange)">Phys B3 (1h):</b> Gravitation &nbsp;·&nbsp; <b style="color:var(--green)">Chem B4 (2h):</b> Mole Concept, Redox Reactions &nbsp;·&nbsp; Mock review'},
+  {day:'Day 12 · Mar 24 [S1]',content:'<b style="color:var(--blue)">Math B3 (2h):</b> Statistics <span style="color:var(--green)">+ Straight Lines ✓ Math B3 Done</span> &nbsp;·&nbsp; <b style="color:var(--orange)">Phys B3 (3h):</b> KTG, Thermal Props &nbsp;·&nbsp; <b style="color:var(--green)">Chem B4 (2h):</b> Practical Chem, Carboxylic Acid Deriv <span style="color:var(--green)">✓ ALL CHEM DONE 🎯</span>'},
+  {day:'Day 13 · Mar 25 [S2]',content:'<b style="color:var(--blue)">Math B4 (3h):</b> AOD, Hyperbola &nbsp;·&nbsp; <b style="color:var(--orange)">Phys B3 (1h):</b> WPE <span style="color:var(--green)">✓ Phys B3 Done</span> &nbsp;·&nbsp; <b style="color:var(--gold)">Chem: Full revision + error log</b> &nbsp;·&nbsp; 🔵 ALL BLOCK 3 DONE'},
+  {day:'Day 14 · Mar 26 [S1] + MOCK',content:'<b style="color:var(--blue)">Math B4 (2h):</b> Inverse Trig &nbsp;·&nbsp; <b style="color:var(--orange)">Phys B4 (3h):</b> AC Circuits, Exp Physics, Motion 1D &nbsp;·&nbsp; <b style="color:var(--gold)">Chem: Organic PYQ revision</b> &nbsp;·&nbsp; + MOCK TEST'},
+  {day:'Day 15 · Mar 27 ★ BIO',content:'<span style="color:var(--gold)">BIOLOGY BOARD — Travel. 7 PM only.</span> &nbsp;·&nbsp; <b style="color:var(--blue)">Math B4:</b> Basics of Math, Indefinite Integration &nbsp;·&nbsp; <b style="color:var(--orange)">Phys B4:</b> Centre of Mass &nbsp;·&nbsp; <b style="color:var(--gold)">Chem: Inorganic full revision night</b>'},
+  {day:'Day 16 · Mar 28 [S2]',content:'<b style="color:var(--blue)">Math B4 (3h):</b> Limits, Trig Eq, Differentiation <span style="color:var(--green)">✓ ALL MATH DONE 🎯</span> &nbsp;·&nbsp; <b style="color:var(--orange)">Phys B4 (1h):</b> Math in Physics &nbsp;·&nbsp; <b style="color:var(--gold)">Chem: Error log + PYQ review</b> &nbsp;·&nbsp; + MOCK TEST'},
+  {day:'Day 17 · Mar 29 [S1]',content:'<b style="color:var(--blue)">Math (2h):</b> Weakest chapter revision &nbsp;·&nbsp; <b style="color:var(--orange)">Phys B4 (3h):</b> Motion 2D, COM+Collision, Mech Solids, Magnetic Props <span style="color:var(--green)">✓ ALL PHYSICS DONE 🎯</span> &nbsp;·&nbsp; <b style="color:var(--gold)">Chem (2h): Organic quick mechanisms</b> &nbsp;·&nbsp; ⚡ ALL 83 CHAPTERS DONE'},
+  {day:'Day 18 · Mar 30 🏆',content:'<b style="color:var(--red)">FULL MOCK DAY — Target 260+</b> &nbsp;·&nbsp; Full 3h exam, then 2h review. Log every error. You are fully revised. 🎯'},
+];
+
+
+function renderBlockDaySchedule(){
+  var el = document.getElementById('blk-day-schedule');
+  if(!el) return;
+  el.innerHTML = BLK_DAY_SCHEDULE.map(function(d){
+    return '<div class="blk-day-row"><div class="blk-day-num">'+d.day+'</div><div class="blk-day-content">'+d.content+'</div></div>';
+  }).join('');
+}
+
+function blkWtCls(blk){ return 'tp-wt-'+blk; }
+function blkLabel(blk){ return {b1:'BLOCK 1',b2:'BLOCK 2',b3:'BLOCK 3',b4:'BLOCK 4'}[blk]||blk; }
+
+var blkTabActive = 'all';
+function switchBlkTab(tab){
+  blkTabActive = tab;
+  ['all','b1','b2','b3','b4'].forEach(function(t){
+    var btn = document.getElementById('bt-'+t);
+    if(btn) btn.className = 'blk-tab'+(t===tab?' active':'');
+  });
+  renderBlkGrids();
+}
+
+function renderBlkGrids(){
+  var filter = blkTabActive;
+  ['math','phy','chem'].forEach(function(subj){
+    var data = {math:BLK_MATH,phy:BLK_PHY,chem:BLK_CHEM}[subj];
+    var grid = document.getElementById('blk-grid-'+subj);
+    if(!grid) return;
+    var filtered = filter==='all' ? data : data.filter(function(c){ return c.blk===filter; });
+    grid.innerHTML = filtered.map(function(ch){
+      var done = !!S.blk[ch.id];
+      var col = {math:'var(--blue)',phy:'var(--orange)',chem:'var(--green)'}[subj];
+      return '<div class="blk-ch-card'+(done?' blk-done':'') +'" onclick="toggleBlk(\''+ch.id+'\',\''+subj+'\')" id="blkc-'+ch.id+'">'+
+        '<div class="blk-ch-cb">'+(done?'✓':'')+'</div>'+
+        '<div class="blk-ch-info">'+
+          '<div class="blk-ch-name">'+ch.n+'</div>'+
+          '<div class="blk-ch-meta">'+
+            '<span class="blk-lbadge blk-'+ch.blk+'">'+blkLabel(ch.blk)+'</span>'+
+            '<span style="font-family:\'JetBrains Mono\',monospace;font-size:9px;color:var(--txt3)">'+ch.qs+' PYQs</span>'+
+          '</div>'+
+          '<div class="blk-day-note">📅 '+ch.day+'</div>'+
+        '</div></div>';
+    }).join('');
+  });
+  updateBlkProgress();
+}
+
+function toggleBlk(chId, subj){
+  S.blk[chId] = !S.blk[chId];
+  saveS();
+  var card = document.getElementById('blkc-'+chId);
+  if(card){
+    card.classList.toggle('blk-done', S.blk[chId]);
+    var cb = card.querySelector('.blk-ch-cb');
+    if(cb) cb.textContent = S.blk[chId] ? '✓' : '';
+  }
+  updateBlkProgress();
+  if(S.blk[chId]) toast('✓ Chapter done! 20 PYQs logged.');
+}
+
+function updateBlkProgress(){
+  var counts = {math:BLK_MATH.length,phy:BLK_PHY.length,chem:BLK_CHEM.length};
+  var done = {math:0,phy:0,chem:0};
+  BLK_MATH.forEach(function(c){ if(S.blk[c.id]) done.math++; });
+  BLK_PHY.forEach(function(c){ if(S.blk[c.id]) done.phy++; });
+  BLK_CHEM.forEach(function(c){ if(S.blk[c.id]) done.chem++; });
+  ['math','phy','chem'].forEach(function(s){
+    var pct = Math.round(done[s]/counts[s]*100);
+    var pv = document.getElementById('blk-prog-'+s);
+    var pb = document.getElementById('blk-bar-'+s);
+    if(pv) pv.textContent = done[s]+'/'+counts[s];
+    if(pb) pb.style.width = pct+'%';
+  });
+}
+
+// ══════════════════════════════════════════
+// TOPIC MASTERY DATA
+// ══════════════════════════════════════════
+var M='MUST', I='IMP', G='GOOD', HI='HIGH', ME='MED', LO='LOW';
+
+var MATH_DATA = [
+  {id:'m1',n:'Sets, Relations & Functions',blk:'b3',qs:'1–2 Qs',day:'1.5h · 10 PYQ',topics:[{id:'t1',l:'Types of functions — bijective, onto, one-one',p:M},{id:'t2',l:'Composition and inverse functions',p:M},{id:'t3',l:'Even/odd, periodic functions, domain & range',p:I}]},
+  {id:'m2',n:'Complex Numbers',blk:'b2',qs:'2–3 Qs',day:'2h · 15 PYQ',topics:[{id:'t1',l:'Argand plane, polar/Euler form',p:M},{id:'t2',l:'Cube roots & nth roots of unity',p:M},{id:'t3',l:"De Moivre's theorem",p:I},{id:'t4',l:'Rotation of complex numbers',p:I}]},
+  {id:'m3',n:'Quadratic Equations',blk:'b2',qs:'1–2 Qs',day:'1.5h · 10 PYQ',topics:[{id:'t1',l:'Discriminant and nature of roots',p:M},{id:'t2',l:"Vieta's formulas",p:M},{id:'t3',l:'Graph of quadratic',p:I}]},
+  {id:'m4',n:'Sequences & Series',blk:'b1',qs:'1–2 Qs',day:'1.5h · 10 PYQ',topics:[{id:'t1',l:'AP, GP, HP — nth term, sum',p:M},{id:'t2',l:'AM ≥ GM ≥ HM inequality',p:M},{id:'t3',l:'Telescoping sums and AGP',p:I}]},
+  {id:'m5',n:'Binomial Theorem',blk:'b2',qs:'1–2 Qs',day:'1.5h · 10 PYQ',topics:[{id:'t1',l:'General term Tr+1, middle term',p:M},{id:'t2',l:'Finding specific coefficient',p:M}]},
+  {id:'m6',n:'Permutation & Combination',blk:'b1',qs:'2–3 Qs',day:'2h · 15 PYQ',topics:[{id:'t1',l:'nPr and nCr — linear and circular',p:M},{id:'t2',l:'Distribution and derangements',p:I},{id:'t3',l:'Word problems and rankings',p:I}]},
+  {id:'m7',n:'Probability',blk:'b2',qs:'2–3 Qs',day:'2h · 15 PYQ',topics:[{id:'t1',l:"Bayes' theorem and conditional probability",p:M},{id:'t2',l:'Binomial distribution',p:M},{id:'t3',l:'Random variable and expectation',p:I}]},
+  {id:'m8',n:'Matrices & Determinants',blk:'b1',qs:'2–3 Qs',day:'2h · 15 PYQ',topics:[{id:'t1',l:'Determinant properties and expansion',p:M},{id:'t2',l:'Inverse and adjoint of matrix',p:M},{id:'t3',l:"System of equations — Cramer's rule",p:M}]},
+  {id:'m9',n:'Limits & Continuity',blk:'b4',qs:'2 Qs',day:'1.5h · 12 PYQ',topics:[{id:'t1',l:'Standard limits and L\'Hôpital',p:M},{id:'t2',l:'Types of discontinuity',p:M}]},
+  {id:'m10',n:'Differentiation',blk:'b4',qs:'2 Qs',day:'1.5h · 12 PYQ',topics:[{id:'t1',l:'Chain, product, quotient rules',p:M},{id:'t2',l:'Implicit and parametric differentiation',p:I}]},
+  {id:'m11',n:'Application of Derivatives',blk:'b4',qs:'2–3 Qs',day:'2h · 15 PYQ',topics:[{id:'t1',l:'Tangent, normal, rate of change',p:M},{id:'t2',l:'Maxima and minima',p:M},{id:'t3',l:"Rolle's and LMVT",p:I}]},
+  {id:'m12',n:'Indefinite Integration',blk:'b4',qs:'1–2 Qs',day:'1.5h · 10 PYQ',topics:[{id:'t1',l:'IBP, partial fractions, substitution',p:M}]},
+  {id:'m13',n:'Definite Integration',blk:'b1',qs:'3–4 Qs',day:'3h · 20 PYQ',topics:[{id:'t1',l:"King's property and Walli's formula",p:M},{id:'t2',l:'Limit as sum',p:I},{id:'t3',l:'Leibniz rule',p:I}]},
+  {id:'m14',n:'Differential Equations',blk:'b2',qs:'2 Qs',day:'2h · 15 PYQ',topics:[{id:'t1',l:'Variable separable, homogeneous, linear',p:M}]},
+  {id:'m15',n:'Area Under Curves',blk:'b2',qs:'1–2 Qs',day:'1.5h · 10 PYQ',topics:[{id:'t1',l:'Area between curves, modulus integrals',p:M}]},
+  {id:'m16',n:'Vector Algebra',blk:'b1',qs:'2 Qs',day:'1.5h · 12 PYQ',topics:[{id:'t1',l:'Dot, cross, scalar triple product',p:M}]},
+  {id:'m17',n:'3D Geometry',blk:'b1',qs:'2–3 Qs',day:'2h · 15 PYQ',topics:[{id:'t1',l:'Line and plane equations — all forms',p:M},{id:'t2',l:'Shortest distance, angle between',p:M}]},
+  {id:'m18',n:'Straight Lines',blk:'b3',qs:'1–2 Qs',day:'1h · 8 PYQ',topics:[{id:'t1',l:'All forms, distance, family of lines',p:M}]},
+  {id:'m19',n:'Circles',blk:'b2',qs:'2–3 Qs',day:'2h · 15 PYQ',topics:[{id:'t1',l:'Tangent, chord of contact, radical axis',p:M}]},
+  {id:'m20',n:'Parabola',blk:'b3',qs:'1–2 Qs',day:'1.5h · 10 PYQ',topics:[{id:'t1',l:'Standard form, parametric, tangent/normal',p:M}]},
+  {id:'m21',n:'Ellipse',blk:'b3',qs:'1–2 Qs',day:'1h · 8 PYQ',topics:[{id:'t1',l:'Eccentricity, focal distances, tangent',p:I}]},
+  {id:'m22',n:'Hyperbola',blk:'b4',qs:'1 Q',day:'1h · 6 PYQ',topics:[{id:'t1',l:'Rectangular hyperbola, asymptotes',p:I}]},
+  {id:'m23',n:'Trigonometry',blk:'b3',qs:'2–3 Qs',day:'2h · 15 PYQ',topics:[{id:'t1',l:'All identities, compound angles, inverse trig',p:M}]},
+  {id:'m24',n:'Statistics',blk:'b3',qs:'1 Q',day:'45min · 6 PYQ',topics:[{id:'t1',l:'Mean, variance, std deviation',p:M}]},
+];
+
+var PHY_DATA = [
+  {id:'p1',n:'Electrostatics',blk:'b1',qs:'3–4 Qs',day:'3h · 20 PYQ',topics:[{id:'t1',l:"Coulomb's law, Gauss's law applications",p:M},{id:'t2',l:'Electric potential, field, capacitors',p:M}]},
+  {id:'p2',n:'Current Electricity',blk:'b1',qs:'2–3 Qs',day:'2h · 15 PYQ',topics:[{id:'t1',l:'KVL, KCL, Wheatstone, potentiometer',p:M},{id:'t2',l:'RC circuit, galvanometer conversion',p:I}]},
+  {id:'p3',n:'Rotational Motion',blk:'b1',qs:'2–3 Qs',day:'2.5h · 18 PYQ',topics:[{id:'t1',l:'MI theorems, rolling without slipping',p:M},{id:'t2',l:'Torque, angular momentum conservation',p:M}]},
+  {id:'p4',n:'Electromagnetic Induction',blk:'b1',qs:'2 Qs',day:'2h · 12 PYQ',topics:[{id:'t1',l:'Faraday + Lenz, self/mutual inductance',p:M}]},
+  {id:'p5',n:'Ray Optics',blk:'b1',qs:'2–3 Qs',day:'2h · 15 PYQ',topics:[{id:'t1',l:'Mirror + lens formulas, TIR, prism',p:M},{id:'t2',l:'Lens power, optical instruments',p:I}]},
+  {id:'p6',n:'Fluids (Mech Properties)',blk:'b1',qs:'1–2 Qs',day:'1.5h · 10 PYQ',topics:[{id:'t1',l:'Bernoulli, continuity, surface tension',p:M}]},
+  {id:'p7',n:'Electromagnetic Waves',blk:'b1',qs:'1 Q',day:'45min · 6 PYQ',topics:[{id:'t1',l:'EM spectrum, properties of EM waves',p:I}]},
+  {id:'p8',n:'Modern Physics',blk:'b2',qs:'2–3 Qs',day:'2h · 15 PYQ',topics:[{id:'t1',l:'Photoelectric, Bohr model, radioactivity',p:M}]},
+  {id:'p9',n:'Thermodynamics',blk:'b2',qs:'2 Qs',day:'2h · 12 PYQ',topics:[{id:'t1',l:'All processes, Carnot, Cp/Cv/γ',p:M}]},
+  {id:'p10',n:'Wave Optics',blk:'b2',qs:'1–2 Qs',day:'1.5h · 10 PYQ',topics:[{id:'t1',l:"YDSE fringe width, Brewster's law",p:M}]},
+  {id:'p11',n:'Laws of Motion',blk:'b2',qs:'1–2 Qs',day:'1.5h · 10 PYQ',topics:[{id:'t1',l:'FBD, friction, pulley, pseudo force',p:M}]},
+  {id:'p12',n:'Magnetic Effects of Current',blk:'b2',qs:'1–2 Qs',day:'1.5h · 10 PYQ',topics:[{id:'t1',l:'Biot-Savart, Ampere, force on conductor',p:M}]},
+  {id:'p13',n:'SHM (Oscillations)',blk:'b3',qs:'2 Qs',day:'2h · 12 PYQ',topics:[{id:'t1',l:'Energy in SHM, spring-mass, pendulum',p:M}]},
+  {id:'p14',n:'Capacitance',blk:'b3',qs:'2 Qs',day:'1.5h · 10 PYQ',topics:[{id:'t1',l:'Combinations, dielectric, energy stored',p:M}]},
+  {id:'p15',n:'Gravitation',blk:'b3',qs:'1–2 Qs',day:'1.5h · 10 PYQ',topics:[{id:'t1',l:"Kepler's laws, orbital/escape velocity",p:M}]},
+  {id:'p16',n:'Work, Power & Energy',blk:'b3',qs:'1–2 Qs',day:'1.5h · 10 PYQ',topics:[{id:'t1',l:'WE theorem, conservative forces, collisions',p:M}]},
+  {id:'p17',n:'AC Circuits',blk:'b4',qs:'2 Qs',day:'2h · 12 PYQ',topics:[{id:'t1',l:'LCR impedance, resonance, power factor',p:M}]},
+  {id:'p18',n:'Kinematics (1D + 2D)',blk:'b4',qs:'1–2 Qs',day:'1.5h · 10 PYQ',topics:[{id:'t1',l:'Equations of motion, projectile, relative',p:M}]},
+  {id:'p19',n:'Centre of Mass & Collision',blk:'b4',qs:'1–2 Qs',day:'1h · 8 PYQ',topics:[{id:'t1',l:'COM of systems, elastic/inelastic collision',p:M}]},
+];
+
+var CHEM_DATA = [
+  {id:'c1',n:'Mole Concept',blk:'b4',qs:'2 Qs',day:'2h · 12 PYQ',topics:[{id:'t1',l:'Stoichiometry, limiting reagent, concentration',p:M}]},
+  {id:'c2',n:'Atomic Structure',blk:'b1',qs:'1–2 Qs',day:'1h · 8 PYQ',topics:[{id:'t1',l:'Bohr model, quantum numbers, orbitals',p:M}]},
+  {id:'c3',n:'Chemical Bonding',blk:'b1',qs:'2–3 Qs',day:'2h · 15 PYQ',topics:[{id:'t1',l:'VSEPR, hybridisation, MOT',p:M},{id:'t2',l:'Hydrogen bonding, dipole moment',p:I}]},
+  {id:'c4',n:'Thermodynamics (Chem)',blk:'b3',qs:'2–3 Qs',day:'2h · 15 PYQ',topics:[{id:'t1',l:'ΔH, ΔS, ΔG, spontaneity, Hess',p:M}]},
+  {id:'c5',n:'Equilibrium',blk:'b3',qs:'2–3 Qs',day:'2h · 15 PYQ',topics:[{id:'t1',l:'Kc, Kp, Le Chatelier, buffer, Ksp',p:M}]},
+  {id:'c6',n:'Electrochemistry',blk:'b2',qs:'2–3 Qs',day:'2h · 15 PYQ',topics:[{id:'t1',l:'Nernst, cell EMF, Faraday, conductivity',p:M}]},
+  {id:'c7',n:'Chemical Kinetics',blk:'b2',qs:'2 Qs',day:'1.5h · 12 PYQ',topics:[{id:'t1',l:'Rate law, half-life, Arrhenius',p:M}]},
+  {id:'c8',n:'Solutions',blk:'b1',qs:'1–2 Qs',day:'1.5h · 10 PYQ',topics:[{id:'t1',l:"Raoult's law, colligative properties, van't Hoff",p:M}]},
+  {id:'c9',n:'GOC & Isomerism',blk:'b1',qs:'2–3 Qs',day:'2h · 15 PYQ',topics:[{id:'t1',l:'Inductive, resonance, hyperconjugation',p:M},{id:'t2',l:'Carbocation stability, R/S, E/Z',p:M}]},
+  {id:'c10',n:'Hydrocarbons',blk:'b2',qs:'1–2 Qs',day:'1.5h · 10 PYQ',topics:[{id:'t1',l:'Electrophilic addition, EAS, aromaticity',p:M}]},
+  {id:'c11',n:'Haloalkanes',blk:'b2',qs:'1–2 Qs',day:'1.5h · 10 PYQ',topics:[{id:'t1',l:'SN1 vs SN2, E1 vs E2, Grignard',p:M}]},
+  {id:'c12',n:'Alcohols, Phenols, Ethers',blk:'b2',qs:'1–2 Qs',day:'1.5h · 10 PYQ',topics:[{id:'t1',l:'Acidity order, Lucas, phenol reactions',p:M}]},
+  {id:'c13',n:'Aldehydes, Ketones, Acids',blk:'b3',qs:'2–3 Qs',day:'2h · 15 PYQ',topics:[{id:'t1',l:'Aldol, Cannizzaro, reductions, carboxylic acids',p:M}]},
+  {id:'c14',n:'Amines',blk:'b1',qs:'1–2 Qs',day:'1.5h · 10 PYQ',topics:[{id:'t1',l:'Basicity, Gabriel, Hoffmann, diazonium',p:M}]},
+  {id:'c15',n:'Coordination Compounds',blk:'b1',qs:'2–3 Qs',day:'2h · 15 PYQ',topics:[{id:'t1',l:'IUPAC, isomerism, CFT, VBT',p:M}]},
+  {id:'c16',n:'p-Block Elements',blk:'b3',qs:'2–3 Qs',day:'2h · 15 PYQ',topics:[{id:'t1',l:'Gr 15–17: oxoacids, compounds',p:M},{id:'t2',l:'Noble gases: XeF compounds',p:I}]},
+  {id:'c17',n:'d & f Block Elements',blk:'b2',qs:'2 Qs',day:'1.5h · 12 PYQ',topics:[{id:'t1',l:'Variable OS, KMnO4, K2Cr2O7',p:M}]},
+  {id:'c18',n:'Periodic Table',blk:'b2',qs:'1 Q',day:'1h · 8 PYQ',topics:[{id:'t1',l:'Trends in IE, EA, radius, electronegativity',p:M}]},
+  {id:'c19',n:'Biomolecules',blk:'b3',qs:'1 Q',day:'45min · 6 PYQ',topics:[{id:'t1',l:'Reducing sugars, proteins, DNA/RNA',p:I}]},
+  {id:'c20',n:'Ionic Equilibrium',blk:'b4',qs:'1–2 Qs',day:'1.5h · 10 PYQ',topics:[{id:'t1',l:'pH, buffers, Ksp, hydrolysis',p:M}]},
+];
+
+// ══════════════════════════════════════════
+// TOPIC MASTERY RENDER
+// ══════════════════════════════════════════
+var tpTabActive = 'math';
+var tpRendered = false;
+var SUBJ_MAP = {
+  math:{data:MATH_DATA,col:'var(--blue)',accent:'#3b82f6'},
+  phy:{data:PHY_DATA,col:'var(--orange)',accent:'#f97316'},
+  chem:{data:CHEM_DATA,col:'var(--green)',accent:'#10b981'}
+};
+
+function switchTopicTab(subj){
+  tpTabActive = subj;
+  ['math','phy','chem'].forEach(function(s){
+    document.getElementById('tp-panel-'+s).style.display = s===subj?'block':'none';
+    var btn = document.getElementById('tp-tab-'+s);
+    btn.className = s===subj ? 'pill active-tp-'+s : 'pill';
+  });
+}
+
+function filterTopics(q){
+  q = q.toLowerCase();
+  document.querySelectorAll('.tp-ch-card').forEach(function(card){
+    card.style.display = (card.dataset.name||'').includes(q) ? '' : 'none';
+  });
+}
+
+function tpKey(chId,tId){ return 'tp_'+chId+'_'+tId; }
+function tpAccKey(chId){ return 'tpacc_'+chId; }
+
+function tickTopic(chId,tId){
+  var k = tpKey(chId,tId);
+  S.tp[k] = !S.tp[k];
+  saveS();
+  var el = document.getElementById('tpt_'+k);
+  if(el){
+    el.classList.toggle('tp-done', S.tp[k]);
+    el.querySelector('.tp-t-cb').textContent = S.tp[k]?'✓':'';
+  }
+  updateChProg(chId);
+  updateTopicStats();
+}
+
+function updateChProg(chId){
+  var allData = MATH_DATA.concat(PHY_DATA).concat(CHEM_DATA);
+  var ch = allData.find(function(c){ return c.id===chId; }); if(!ch) return;
+  var done = ch.topics.filter(function(t){ return S.tp[tpKey(chId,t.id)]; }).length;
+  var pct = Math.round(done/ch.topics.length*100);
+  var bar = document.getElementById('tpcb_'+chId);
+  var pctEl = document.getElementById('tpcp_'+chId);
+  if(bar) bar.style.width = pct+'%';
+  if(pctEl) pctEl.textContent = pct+'%';
+  var card = document.getElementById('tpcard_'+chId);
+  if(card) card.classList.toggle('tp-mastered', pct===100);
+}
+
+function saveTpAcc(chId, val){
+  S.tpacc[tpAccKey(chId)] = parseInt(val)||0;
+  saveS();
+  var v = parseInt(val)||0;
+  var disp = document.getElementById('tpadisp_'+chId);
+  if(disp){ disp.textContent = v?v+'%':''; disp.style.color = v>=80?'var(--green)':v>=60?'var(--gold)':'var(--red)'; }
+  updateTopicStats();
+}
+
+function updateTopicStats(){
+  var totalT=0,doneT=0,readyCh=0,weakCh=0;
+  var subjects={math:0,phy:0,chem:0},sdone={math:0,phy:0,chem:0};
+  var sMap={math:MATH_DATA,phy:PHY_DATA,chem:CHEM_DATA};
+  Object.keys(sMap).forEach(function(sk){
+    sMap[sk].forEach(function(ch){
+      var d=ch.topics.filter(function(t){ return S.tp[tpKey(ch.id,t.id)]; }).length;
+      totalT+=ch.topics.length; doneT+=d;
+      subjects[sk]+=ch.topics.length; sdone[sk]+=d;
+      if(d===ch.topics.length) readyCh++;
+      var acc=S.tpacc[tpAccKey(ch.id)]||0;
+      if(acc>0&&acc<60) weakCh++;
+    });
+  });
+  document.getElementById('tp-stat-done').textContent=doneT;
+  document.getElementById('tp-stat-ch').textContent=readyCh;
+  document.getElementById('tp-stat-weak').textContent=weakCh;
+  ['math','phy','chem'].forEach(function(sk){
+    var pct=subjects[sk]?Math.round(sdone[sk]/subjects[sk]*100):0;
+    document.getElementById('tpb-'+sk).style.width=pct+'%';
+    document.getElementById('tpbp-'+sk).textContent=pct+'%';
+    var prog=document.getElementById('tp-prog-'+sk);
+    if(prog) prog.textContent=pct+'% complete';
+  });
+}
+
+function renderTopicMastery(){
+  if(tpRendered) return;
+  tpRendered=true;
+  Object.keys(SUBJ_MAP).forEach(function(sk){
+    var ref = SUBJ_MAP[sk];
+    var grid = document.getElementById('tp-grid-'+sk);
+    if(!grid) return;
+    grid.innerHTML = ref.data.map(function(ch,idx){
+      var done=ch.topics.filter(function(t){ return S.tp[tpKey(ch.id,t.id)]; }).length;
+      var pct=Math.round(done/ch.topics.length*100);
+      var acc=S.tpacc[tpAccKey(ch.id)]||0;
+      var accCol=acc>=80?'var(--green)':acc>=60?'var(--gold)':acc>0?'var(--red)':'var(--txt3)';
+      var blkLbl = {b1:'B1',b2:'B2',b3:'B3',b4:'B4'}[ch.blk||'b1']||'';
+      var blkCls = 'tp-wt-'+(ch.blk||'b1');
+      return '<div class="tp-ch-card'+(pct===100?' tp-mastered':'') +'" id="tpcard_'+ch.id+'" data-name="'+ch.n.toLowerCase()+'">'+
+        '<div class="tp-ch-accent" style="background:'+ref.accent+'"></div>'+
+        '<div class="tp-ch-head" onclick="tpToggle(\''+ch.id+'\')">'+
+          '<div class="tp-ch-num">'+(idx+1<10?'0'+(idx+1):idx+1)+'</div>'+
+          '<div class="tp-ch-info">'+
+            '<div class="tp-ch-name">'+ch.n+'</div>'+
+            '<div class="tp-ch-meta">'+
+              '<span class="tp-wt '+blkCls+'">'+blkLbl+'</span>'+
+              '<span class="tp-ch-qs">'+ch.qs+' in paper</span>'+
+              (acc?'<span style="font-family:\'JetBrains Mono\',monospace;font-size:9px;color:'+accCol+'">'+acc+'%</span>':'')+'</div>'+
+          '</div>'+
+          '<div class="tp-ch-prog-wrap">'+
+            '<div class="tp-ch-prog-bar"><div class="tp-ch-prog-fill" id="tpcb_'+ch.id+'" style="width:'+pct+'%;background:'+ref.accent+'"></div></div>'+
+            '<div class="tp-ch-pct" id="tpcp_'+ch.id+'">'+pct+'%</div>'+
+          '</div>'+
+          '<div class="tp-ch-arrow">▼</div>'+
+        '</div>'+
+        '<div class="tp-ch-body">'+
+          '<div class="tp-day-plan"><b>Session:</b> '+ch.day+'</div>'+
+          '<div class="tp-section-lbl">Subtopics</div>'+
+          ch.topics.map(function(t){
+            var k=tpKey(ch.id,t.id);
+            var tdone=S.tp[k];
+            var prCls=t.p===M?'tp-pr-must':t.p===I?'tp-pr-imp':'tp-pr-good';
+            var prTxt=t.p===M?'MUST':t.p===I?'IMP':'GOOD';
+            return '<div class="tp-topic-item'+(tdone?' tp-done':'') +'" id="tpt_'+k+'" onclick="tickTopic(\''+ch.id+'\',\''+t.id+'\')">'+
+              '<div class="tp-t-cb" style="'+(tdone?'background:'+ref.accent+';border-color:'+ref.accent+';color:#000':'')+'">'+
+                (tdone?'✓':'')+'</div>'+
+              '<span class="tp-t-lbl">'+t.l+'</span>'+
+              '<span class="tp-t-pr '+prCls+'">'+prTxt+'</span></div>';
+          }).join('')+
+          '<div class="tp-acc-row">'+
+            '<span class="tp-acc-lbl">Mathango Accuracy:</span>'+
+            '<input class="tp-acc-inp" type="number" min="0" max="100" placeholder="%" value="'+(acc||'')+'" oninput="saveTpAcc(\''+ch.id+'\',this.value)">'+
+            '<span class="tp-acc-disp" id="tpadisp_'+ch.id+'" style="color:'+accCol+'">'+(acc?acc+'%':'')+'</span>'+
+          '</div>'+
+          '<button class="tp-mark-all" onclick="markAllTopics(\''+ch.id+'\')">mark all / undo all</button>'+
+        '</div></div>';
+    }).join('');
+  });
+  updateTopicStats();
+}
+
+function tpToggle(chId){
+  var card = document.getElementById('tpcard_'+chId);
+  if(card) card.classList.toggle('tp-open');
+}
+
+function markAllTopics(chId){
+  var allData = MATH_DATA.concat(PHY_DATA).concat(CHEM_DATA);
+  var ch = allData.find(function(c){ return c.id===chId; }); if(!ch) return;
+  var allDone = ch.topics.every(function(t){ return S.tp[tpKey(chId,t.id)]; });
+  ch.topics.forEach(function(t){
+    var k=tpKey(chId,t.id); S.tp[k]=!allDone;
+    var el=document.getElementById('tpt_'+k);
+    if(el){ el.classList.toggle('tp-done',S.tp[k]); el.querySelector('.tp-t-cb').textContent=S.tp[k]?'✓':''; }
+  });
+  saveS();
+  updateChProg(chId); updateTopicStats();
+}
+
+// ══════════════════════════════════════════
+// SCORE TRACKER
+// ══════════════════════════════════════════
+function logScore(){
+  var date=document.getElementById('si-date').value.trim();
+  var phy=parseInt(document.getElementById('si-phy').value)||0;
+  var che=parseInt(document.getElementById('si-che').value)||0;
+  var mat=parseInt(document.getElementById('si-mat').value)||0;
+  var mistake=document.getElementById('si-mistake').value.trim();
+  if(!date){ toast('⚠ Enter a date!'); return; }
+  S.scores.push({date:date,phy:phy,che:che,mat:mat,total:phy+che+mat,mistake:mistake});
+  saveS();
+  renderScoreHist(); renderChart(); updateStats(); updateMilestones();
+  ['si-date','si-phy','si-che','si-mat','si-mistake'].forEach(function(id){ document.getElementById(id).value=''; });
+  toast('✓ Score logged: '+(phy+che+mat)+'/300');
+  if(phy+che+mat>=240) confettiBurst();
+}
+
+function renderScoreHist(){
+  var el=document.getElementById('score-hist');
+  if(!S.scores.length){ el.innerHTML='<div style="text-align:center;padding:24px;color:var(--txt3);font-family:\'JetBrains Mono\',monospace;font-size:11px">No scores yet.</div>'; return; }
+  el.innerHTML=[...S.scores].reverse().map(function(s){
+    var cls=s.total>=240?'tot-green':s.total>=200?'tot-gold':'tot-red';
+    var col=s.total>=240?'var(--green)':s.total>=200?'var(--gold)':'var(--red)';
+    return '<div class="sh-row"><span style="color:var(--txt2)">'+s.date+'</span><span>'+s.phy+'</span><span>'+s.che+'</span><span>'+s.mat+'</span><span class="sh-total '+cls+'">'+s.total+'</span><div class="mini-bar"><div class="mini-fill" style="width:'+Math.round(s.total/300*100)+'%;background:'+col+'"></div></div><span class="sh-mistake">'+(s.mistake||'—')+'</span></div>';
+  }).join('');
+}
+
+function renderChart(){
+  var el=document.getElementById('score-chart');
+  if(!S.scores.length) return;
+  var last=S.scores.slice(-12);
+  var maxV=Math.max.apply(null,last.map(function(s){ return s.total; }).concat([300]));
+  el.innerHTML=last.map(function(s){
+    var h=Math.round((s.total/maxV)*100);
+    var col=s.total>=240?'var(--green)':s.total>=200?'var(--gold)':'var(--red)';
+    return '<div class="chart-bar-wrap"><div class="chart-bar" style="height:'+h+'%;background:'+col+'"></div><div class="chart-lbl">'+s.total+'</div></div>';
+  }).join('');
+}
+
+function updateMilestones(){
+  if(!S.scores.length) return;
+  var avg=S.scores.reduce(function(a,s){ return a+s.total; },0)/S.scores.length;
+  document.getElementById('ms1').style.width=Math.min(100,avg/220*100)+'%';
+  document.getElementById('ms2').style.width=Math.min(100,Math.max(0,(avg-200)/40*100))+'%';
+  document.getElementById('ms3').style.width=Math.min(100,Math.max(0,(avg-220)/40*100))+'%';
+  document.getElementById('ms4').style.width=Math.min(100,Math.max(0,(avg-240)/40*100))+'%';
+}
+
+// ══════════════════════════════════════════
+// ERROR LOG
+// ══════════════════════════════════════════
+function addError(){
+  S.errors.push({id:Date.now(),date:'',subj:'Ma',topic:'',why:'',type:'concept',fixed:false});
+  saveS();
+  renderErrors();
+}
+function cycleType(id){
+  var e=S.errors.find(function(e){ return e.id===id; }); if(!e) return;
+  var t=['silly','concept','mindset'];
+  e.type=t[(t.indexOf(e.type)+1)%t.length]; saveS(); renderErrors();
+}
+function toggleFix(id){
+  var e=S.errors.find(function(e){ return e.id===id; }); if(!e) return;
+  e.fixed=!e.fixed; saveS(); renderErrors();
+  if(e.fixed) toast('✓ Error fixed!');
+}
+function updErr(id,f,v){ var e=S.errors.find(function(e){ return e.id===id; }); if(e){ e[f]=v; saveS(); } }
+
+function renderErrors(){
+  var el=document.getElementById('err-body');
+  if(!S.errors.length){
+    el.innerHTML='<tr><td colspan="7" style="text-align:center;padding:28px;color:var(--txt3);font-family:\'JetBrains Mono\',monospace;font-size:11px">No errors logged yet. Every wrong mock answer goes here.</td></tr>';
+    return;
+  }
+  el.innerHTML=S.errors.map(function(e,i){
+    return '<tr>'+
+      '<td style="color:var(--txt3);font-family:\'JetBrains Mono\',monospace">'+(i+1)+'</td>'+
+      '<td><input class="err-inp" style="width:55px" placeholder="Date" value="'+e.date+'" oninput="updErr('+e.id+',\'date\',this.value)"></td>'+
+      '<td><select class="err-select" onchange="updErr('+e.id+',\'subj\',this.value)"><option '+(e.subj==='Ma'?'selected':'')+'>Ma</option><option '+(e.subj==='Ph'?'selected':'')+'>Ph</option><option '+(e.subj==='Ch'?'selected':'')+'>Ch</option></select></td>'+
+      '<td><input class="err-inp" placeholder="Topic" value="'+e.topic+'" oninput="updErr('+e.id+',\'topic\',this.value)"></td>'+
+      '<td><input class="err-inp" placeholder="What went wrong?" value="'+e.why+'" oninput="updErr('+e.id+',\'why\',this.value)"></td>'+
+      '<td><button class="type-pill type-'+e.type+'" onclick="cycleType('+e.id+')">'+e.type+'</button></td>'+
+      '<td><button class="fix-btn'+(e.fixed?' fixed':'') +'" onclick="toggleFix('+e.id+')">'+(e.fixed?'✓':'')+'</button></td>'+
+    '</tr>';
+  }).join('');
+}
+
+// ══════════════════════════════════════════
+// CHEM RETENTION
+// ══════════════════════════════════════════
+var CRT_CHAPTERS = {
+  inorg:[
+    {id:'ci1',n:'s-Block (Group 1 & 2)'},{id:'ci2',n:'p-Block: Groups 13 & 14'},{id:'ci3',n:'p-Block: Groups 15, 16, 17 ⚡'},
+    {id:'ci4',n:'p-Block: Group 18 (Noble Gases)'},{id:'ci5',n:'d-Block & f-Block Elements'},{id:'ci6',n:'Coordination Compounds ⚡'},{id:'ci7',n:'Metallurgy'}
+  ],
+  org:[
+    {id:'co1',n:'GOC & Isomerism ⚡'},{id:'co2',n:'Hydrocarbons'},{id:'co3',n:'Haloalkanes & Haloarenes'},
+    {id:'co4',n:'Alcohols, Phenols & Ethers'},{id:'co5',n:'Aldehydes, Ketones & Carboxylic Acids ⚡'},{id:'co6',n:'Amines & Diazonium'},{id:'co7',n:'Biomolecules'}
+  ],
+  phy:[
+    {id:'cp1',n:'Mole Concept'},{id:'cp2',n:'Chemical Bonding'},{id:'cp3',n:'Thermodynamics ⚡'},{id:'cp4',n:'Equilibrium ⚡'},
+    {id:'cp5',n:'Electrochemistry ⚡'},{id:'cp6',n:'Chemical Kinetics'},{id:'cp7',n:'Solutions'}
+  ]
+};
+var CRT_DAYS = ['d1','d3','d7','d14'];
+var CRT_LABELS = {d1:'D1',d3:'D3',d7:'D7',d14:'D14'};
+var CRT_FULL = {d1:'Day 1',d3:'Day 3',d7:'Day 7',d14:'Day 14'};
+
+function crtKey(chId,day){ return 'crt_'+chId+'_'+day; }
+
+function toggleCrt(chId,day){
+  var k=crtKey(chId,day);
+  S.crt[k]=!S.crt[k];
+  saveS();
+  var cb=document.getElementById('crtcb_'+chId+'_'+day);
+  var card=document.getElementById('crtcard_'+chId);
+  if(cb){
+    cb.textContent=S.crt[k]?'✓':CRT_LABELS[day];
+    cb.className='crt-day-cb'+(S.crt[k]?' done-'+day:'');
+  }
+  if(card){ var allDone=CRT_DAYS.every(function(d){ return S.crt[crtKey(chId,d)]; }); card.classList.toggle('crt-complete',allDone); }
+  if(S.crt[k]){
+    var msgs={d1:'Day 1 ✓ — review again on Day 3!',d3:'Day 3 ✓ — next on Day 7!',d7:'Day 7 ✓ — one more on Day 14!',d14:'Day 14 ✓ — PERMANENT! 🔥'};
+    toast(msgs[day]);
+    if(day==='d14') confettiBurst();
+  }
+}
+
+var crtRendered=false;
+function renderChemRetention(){
+  if(crtRendered) return;
+  crtRendered=true;
+  var sectionMap={inorg:'crt-inorg',org:'crt-org',phy:'crt-phy-chem'};
+  Object.keys(CRT_CHAPTERS).forEach(function(sec){
+    var grid=document.getElementById(sectionMap[sec]);
+    if(!grid) return;
+    grid.innerHTML=CRT_CHAPTERS[sec].map(function(ch){
+      var allDone=CRT_DAYS.every(function(d){ return S.crt[crtKey(ch.id,d)]; });
+      var daysHTML=CRT_DAYS.map(function(day,i){
+        var done=S.crt[crtKey(ch.id,day)];
+        return (i>0?'<div class="crt-arrow">→</div>':'')+
+          '<div class="crt-day-item" onclick="toggleCrt(\''+ch.id+'\',\''+day+'\')">'+
+            '<div class="crt-day-cb'+(done?' done-'+day:'')+'" id="crtcb_'+ch.id+'_'+day+'">'+(done?'✓':CRT_LABELS[day])+'</div>'+
+            '<div class="crt-day-lbl">'+CRT_FULL[day]+'</div>'+
+          '</div>';
+      }).join('');
+      return '<div class="crt-ch-card'+(allDone?' crt-complete':'')+'" id="crtcard_'+ch.id+'">'+
+        '<div class="crt-ch-name">'+ch.n+'</div>'+
+        '<div class="crt-days-row">'+daysHTML+'</div>'+
+      '</div>';
+    }).join('');
+  });
+}
+
+// ══════════════════════════════════════════
+// DAILY ROUTINE
+// ══════════════════════════════════════════
+// Two alternating routines: Shift 1 mock (9-12) and Shift 2 mock (3-6)
+var ROUTINE_SHIFT1 = [
+  {time:'6:00 AM',label:'Wake up + Exercise + Freshen up',sub:'10 min exercise. No phone. Eat light.',type:'break',tag:'WAKE',tagCls:'tag-break'},
+  {time:'6:30–7:00',label:'Breakfast + Error Log scan',sub:'Read yesterday\'s error log while eating. No new study.',type:'break',tag:'FUEL',tagCls:'tag-break'},
+  {time:'7:00–9:00',label:'MATHEMATICS — 2 hours (1 chapter PYQ)',sub:'Block order. 20 PYQs — attempt then review. Phone off.',type:'study',tag:'MATH',tagCls:'tag-math'},
+  {time:'9:00–12:00',label:'🎯 FULL JEE MAINS MOCK — Shift 1 Timing',sub:'Exam conditions. Pen + paper. Phone in other room. 3 hours exactly. No early exit.',type:'mandatory',tag:'MOCK ★',tagCls:'tag-must'},
+  {time:'12:00–1:00',label:'Lunch + Quick walk',sub:'Eat well. 15 min walk. Let the mock settle.',type:'break',tag:'REST',tagCls:'tag-break'},
+  {time:'1:00–3:00',label:'MOCK REVIEW — 2 hours minimum',sub:'Every wrong answer in Error Log. Every slow correct = note method. Min 5 errors logged.',type:'mock',tag:'REVIEW',tagCls:'tag-mock'},
+  {time:'3:00–6:00',label:'PHYSICS — 3 hours (2 chapters PYQ)',sub:'Block order. 20 PYQs per chapter. Pathfinder + SB Tiwari.',type:'study',tag:'PHYS 3H',tagCls:'tag-phys'},
+  {time:'6:00–6:30',label:'Evening break',sub:'Stretch, walk. No screens.',type:'break',tag:'BREAK',tagCls:'tag-break'},
+  {time:'6:30–8:30',label:'CHEMISTRY — 2 hours (1 chapter PYQ)',sub:'Block order. Draw mechanisms. Never passive reading.',type:'study',tag:'CHEM',tagCls:'tag-chem'},
+  {time:'8:30–9:00',label:'Dinner',sub:'Eat properly. 30 min only.',type:'break',tag:'DINNER',tagCls:'tag-break'},
+  {time:'9:00–9:30',label:'✦ INORGANIC CHEM REVISION',sub:'NON-NEGOTIABLE every night. Rotate: p-block → d-block → Coord → s-block.',type:'mandatory',tag:'INORG ✦',tagCls:'tag-must'},
+  {time:'9:30–10:15',label:'Formula revision + Next day plan',sub:'Plan tomorrow tonight. Eliminates morning decision fatigue.',type:'mandatory',tag:'PLAN',tagCls:'tag-must'},
+  {time:'10:30 PM',label:'SLEEP — 7.5 hours',sub:'Sleep is revision. Memory consolidates during deep sleep.',type:'sleep',tag:'SLEEP',tagCls:'tag-sleep'},
+];
+
+var ROUTINE_SHIFT2 = [
+  {time:'6:00 AM',label:'Wake up + Exercise + Freshen up',sub:'10 min exercise. No phone. Eat light.',type:'break',tag:'WAKE',tagCls:'tag-break'},
+  {time:'6:30–7:00',label:'Breakfast + Error Log scan',sub:'Read yesterday\'s errors while eating.',type:'break',tag:'FUEL',tagCls:'tag-break'},
+  {time:'7:00–10:00',label:'MATHEMATICS — 3 hours (2 chapters PYQ)',sub:'Block order. 20 PYQs per chapter. Phone off. Best brain hours.',type:'study',tag:'MATH 3H',tagCls:'tag-math'},
+  {time:'10:00–11:00',label:'CHEMISTRY — 1 hour (1 chapter PYQ)',sub:'Block order. 20 PYQs. Mechanisms by hand.',type:'study',tag:'CHEM',tagCls:'tag-chem'},
+  {time:'11:00–11:30',label:'Lunch early + Light warmup',sub:'Eat light — heavy food = drowsy in mock. Quick formula glance.',type:'break',tag:'PREP',tagCls:'tag-break'},
+  {time:'11:30–12:00',label:'Mock warm-up (mental prep)',sub:'Glance at 3 PYQs per subject. Wake the brain. No new learning.',type:'study',tag:'WARMUP',tagCls:'tag-math'},
+  {time:'12:00–1:00',label:'Break + snack',sub:'Rest. Light walk. Save energy for the mock.',type:'break',tag:'REST',tagCls:'tag-break'},
+  {time:'1:00–2:00',label:'PHYSICS — 1 hour (warm-up chapter)',sub:'Keep momentum — 1 chapter PYQ before mock.',type:'study',tag:'PHYS',tagCls:'tag-phys'},
+  {time:'2:30–2:50',label:'Final formula glance + settle in',sub:'Quick scan of weak formulas. Sit at desk. Ready.',type:'mandatory',tag:'READY',tagCls:'tag-must'},
+  {time:'3:00–6:00',label:'🎯 FULL JEE MAINS MOCK — Shift 2 Timing',sub:'Exam conditions. Phone away. 3 hours exactly. Execute.',type:'mandatory',tag:'MOCK ★',tagCls:'tag-must'},
+  {time:'6:00–6:30',label:'Short break after mock',sub:'Walk outside. Clear your head before reviewing.',type:'break',tag:'BREAK',tagCls:'tag-break'},
+  {time:'6:30–8:30',label:'MOCK REVIEW — 2 hours minimum',sub:'Every wrong answer into Error Log. Understand root cause.',type:'mock',tag:'REVIEW',tagCls:'tag-mock'},
+  {time:'8:30–9:00',label:'Dinner',sub:'Eat well. 30 min.',type:'break',tag:'DINNER',tagCls:'tag-break'},
+  {time:'9:00–9:30',label:'✦ INORGANIC CHEM REVISION',sub:'NON-NEGOTIABLE every night. No exceptions.',type:'mandatory',tag:'INORG ✦',tagCls:'tag-must'},
+  {time:'9:30–10:15',label:'Formula revision + Next day plan',sub:'Tomorrow: Shift 1 mock. Plan now.',type:'mandatory',tag:'PLAN',tagCls:'tag-must'},
+  {time:'10:30 PM',label:'SLEEP — 7.5 hours',sub:'Sleep is revision. Memory consolidates during deep sleep.',type:'sleep',tag:'SLEEP',tagCls:'tag-sleep'},
+];
+
+var ROUTINE_SLOTS = ROUTINE_SHIFT1; // default view, toggled by JS
+
+var routineRendered=false;
+var curShift=1;
+
+function switchShift(n){
+  curShift=n;
+  document.getElementById('rtn-btn-s1').className='rtn-shift-btn'+(n===1?' active-shift':'');
+  document.getElementById('rtn-btn-s2').className='rtn-shift-btn'+(n===2?' active-shift':'');
+  var slots = n===1 ? ROUTINE_SHIFT1 : ROUTINE_SHIFT2;
+  var grid=document.getElementById('rtn-grid');
+  if(!grid) return;
+  grid.innerHTML=slots.map(function(slot){
+    var isMock = slot.tag==='MOCK ★';
+    return '<div class="rtn-slot rtn-'+slot.type+'" '+(isMock?'style="border-width:2px"':'')+'>'+
+      '<div class="rtn-time" style="'+(isMock?'color:var(--gold);font-size:12px':'')+'">'+slot.time+'</div>'+
+      '<div class="rtn-content">'+
+        '<div><div class="rtn-label" style="'+(isMock?'color:var(--gold)':'')+'">'+slot.label+'</div><div class="rtn-sub">'+slot.sub+'</div></div>'+
+        '<span class="rtn-tag '+slot.tagCls+'">'+slot.tag+'</span>'+
+      '</div></div>';
+  }).join('');
+}
+
+function renderRoutine(){
+  if(routineRendered) return;
+  routineRendered=true;
+  var now=new Date();
+  var days=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  var months=['January','February','March','April','May','June','July','August','September','October','November','December'];
+  var banner=document.getElementById('rtnTodayBanner');
+  var dayNum=now.getDate();
+  var shiftToday = dayNum%2===1 ? 'Shift 1 (9 AM–12 PM mock)' : 'Shift 2 (3 PM–6 PM mock)';
+  if(banner) banner.textContent='// Today: '+days[now.getDay()]+', '+now.getDate()+' '+months[now.getMonth()]+' '+now.getFullYear()+' — '+shiftToday;
+  // Auto-select today\'s shift
+  curShift = dayNum%2===1 ? 1 : 2;
+  document.getElementById('rtn-btn-s1').className='rtn-shift-btn'+(curShift===1?' active-shift':'');
+  document.getElementById('rtn-btn-s2').className='rtn-shift-btn'+(curShift===2?' active-shift':'');
+  switchShift(curShift);
+}
+
+// ══════════════════════════════════════════
+// STRATEGY DAILY CHECKLIST
+// ══════════════════════════════════════════
+function loadDailyChecklist(){
+  var today=new Date().toDateString();
+  if(S.daily.date!==today){ S.daily={date:today,done:{}}; }
+  for(var i=1;i<=8;i++){
+    var item=document.getElementById('sdn-'+i);
+    var cb=document.getElementById('sdncb-'+i);
+    if(!item||!cb) continue;
+    var isDone=!!S.daily.done[i];
+    item.classList.toggle('st-done',isDone);
+    cb.textContent=isDone?'✓':'○';
+  }
+}
+
+function toggleDaily(n){
+  var today=new Date().toDateString();
+  if(S.daily.date!==today){ S.daily={date:today,done:{}}; }
+  S.daily.done[n]=!S.daily.done[n];
+  saveS();
+  var item=document.getElementById('sdn-'+n);
+  var cb=document.getElementById('sdncb-'+n);
+  if(item) item.classList.toggle('st-done',S.daily.done[n]);
+  if(cb) cb.textContent=S.daily.done[n]?'✓':'○';
+  if(S.daily.done[n]){
+    var cnt=Object.values(S.daily.done).filter(Boolean).length;
+    if(cnt===8){ confettiBurst(); toast('🔥 FULL DAY COMPLETED! BEAST MODE!'); }
+    else if(n===7){ toast('✦ Inorganic done — +10 marks incoming!'); }
+    else{ toast('✓ Done!'); }
+  }
+}
+
+// ══════════════════════════════════════════
+// RATINGS
+// ══════════════════════════════════════════
+function buildRatings(){
+  ['consistency','focus','test','inorg'].forEach(function(k){
+    var el=document.getElementById('stars-'+k);
+    if(!el) return;
+    el.innerHTML=[1,2,3,4,5].map(function(n){
+      return '<div class="star'+(( S.ratings[k]||0)>=n?' lit':'')+'" onclick="setRating(\''+k+'\','+n+')">'+n+'</div>';
+    }).join('');
+  });
+}
+function setRating(k,v){ S.ratings[k]=v; saveS(); buildRatings(); }
+
+// ══════════════════════════════════════════
+// STATS
+// ══════════════════════════════════════════
+function updateStats(){
+  var sc=S.scores.map(function(s){ return s.total; });
+  document.getElementById('s-avg').textContent=sc.length?Math.round(sc.reduce(function(a,b){ return a+b; },0)/sc.length):'—';
+  document.getElementById('s-best').textContent=sc.length?Math.max.apply(null,sc):'—';
+  document.getElementById('s-tasks').textContent=Object.values(S.tasks).filter(Boolean).length;
+  var adv=new Date('2026-05-17');
+  var diff=Math.ceil((adv-new Date())/(864e5));
+  document.getElementById('s-days').textContent=diff>0?diff:'🎯';
+}
+
+// ══════════════════════════════════════════
+// STREAK
+// ══════════════════════════════════════════
+function updateStreak(){
+  var today=new Date().toDateString();
+  if(S.lastActive!==today){
+    var yesterday=new Date(Date.now()-864e5).toDateString();
+    S.streak=S.lastActive===yesterday?S.streak+1:1;
+    S.lastActive=today;
+    saveS();
+  }
+  document.getElementById('streakNum').textContent=S.streak;
+}
+
+// ══════════════════════════════════════════
+// TABS
+// ══════════════════════════════════════════
+var PANELS=['p1','p2','p3','exam','blocks','topic','score','err','strat','chem-ret','routine'];
+function switchTab(id){
+  PANELS.forEach(function(p){
+    var panel=document.getElementById('panel-'+p);
+    var pill=document.getElementById('pill-'+p);
+    if(panel) panel.classList.toggle('on',p===id);
+    if(pill) pill.className='pill'+(p===id?' active-'+p:'');
+  });
+  if(id==='topic') renderTopicMastery();
+  if(id==='strat') loadDailyChecklist();
+  if(id==='chem-ret') renderChemRetention();
+  if(id==='routine') renderRoutine();
+  if(id==='blocks'){ renderBlkGrids(); renderBlockDaySchedule(); }
+}
+
+// ══════════════════════════════════════════
+// CLOCK + COUNTDOWN
+// ══════════════════════════════════════════
+function updateClock(){
+  var now=new Date();
+  document.getElementById('liveClock').textContent=now.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  var days=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  var months=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  var todayEl=document.getElementById('hdrToday');
+  if(todayEl) todayEl.textContent=days[now.getDay()]+' · '+now.getDate()+' '+months[now.getMonth()]+' '+now.getFullYear();
+  var mainStart=new Date('2026-04-02T00:00:00');
+  var mainEnd=new Date('2026-04-09T23:59:59');
+  var adv=new Date('2026-05-17T00:00:00');
+  var diff=adv-now;
+  if(now>=mainStart&&now<=mainEnd){ document.getElementById('countdown').textContent='🎯 JEE MAINS EXAM WINDOW!'; return; }
+  if(diff<=0){ document.getElementById('countdown').textContent='🎯 JEE ADV EXAM DAY!'; return; }
+  var d=Math.floor(diff/864e5),h=Math.floor(diff%864e5/36e5),m=Math.floor(diff%36e5/6e4);
+  document.getElementById('countdown').textContent=d+'D '+h+'H '+m+'M → JEE ADV';
+}
+
+// ══════════════════════════════════════════
+// TOAST
+// ══════════════════════════════════════════
+var toastTimer;
+function toast(msg){
+  var el=document.getElementById('toast');
+  el.textContent=msg; el.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer=setTimeout(function(){ el.classList.remove('show'); },2200);
+}
+
+// ══════════════════════════════════════════
+// CONFETTI
+// ══════════════════════════════════════════
+function confettiBurst(){
+  var canvas=document.getElementById('confetti-canvas');
+  canvas.width=innerWidth; canvas.height=innerHeight;
+  var ctx=canvas.getContext('2d');
+  var colors=['#00f5d4','#ff3860','#ffd166','#06d6a0','#4cc9f0','#7b2fff'];
+  var particles=[];
+  for(var i=0;i<80;i++){
+    particles.push({x:Math.random()*innerWidth,y:Math.random()*innerHeight*.5,vx:(Math.random()-.5)*8,vy:Math.random()*-8-2,color:colors[Math.floor(Math.random()*colors.length)],size:Math.random()*8+4,rot:Math.random()*360,vr:(Math.random()-.5)*15,alpha:1});
+  }
+  var frame;
+  function draw(){
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    particles.forEach(function(p){
+      ctx.save();ctx.translate(p.x,p.y);ctx.rotate(p.rot*Math.PI/180);
+      ctx.globalAlpha=p.alpha;ctx.fillStyle=p.color;
+      ctx.fillRect(-p.size/2,-p.size/2,p.size,p.size*.5);
+      ctx.restore();
+      p.x+=p.vx;p.y+=p.vy;p.vy+=0.2;p.rot+=p.vr;p.alpha-=0.012;
+    });
+    if(particles.some(function(p){ return p.alpha>0; })) frame=requestAnimationFrame(draw);
+    else ctx.clearRect(0,0,canvas.width,canvas.height);
+  }
+  if(frame) cancelAnimationFrame(frame);
+  draw();
+}
+
+// ══════════════════════════════════════════
+// PARTICLES BG
+// ══════════════════════════════════════════
+function initParticles(){
+  var canvas=document.getElementById('particles');
+  var ctx=canvas.getContext('2d');
+  canvas.width=innerWidth; canvas.height=innerHeight;
+  window.addEventListener('resize',function(){ canvas.width=innerWidth; canvas.height=innerHeight; });
+  var pts=[];
+  for(var i=0;i<50;i++){
+    pts.push({x:Math.random()*innerWidth,y:Math.random()*innerHeight,vx:(Math.random()-.5)*.4,vy:(Math.random()-.5)*.4,r:Math.random()*1.5+.5});
+  }
+  function draw(){
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    pts.forEach(function(p){
+      ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);ctx.fillStyle='rgba(0,245,212,0.2)';ctx.fill();
+      p.x+=p.vx;p.y+=p.vy;
+      if(p.x<0||p.x>canvas.width) p.vx*=-1;
+      if(p.y<0||p.y>canvas.height) p.vy*=-1;
+    });
+    for(var i=0;i<pts.length;i++) for(var j=i+1;j<pts.length;j++){
+      var dx=pts[i].x-pts[j].x,dy=pts[i].y-pts[j].y,dist=Math.sqrt(dx*dx+dy*dy);
+      if(dist<120){ ctx.beginPath();ctx.moveTo(pts[i].x,pts[i].y);ctx.lineTo(pts[j].x,pts[j].y);ctx.strokeStyle='rgba(0,245,212,'+(0.06*(1-dist/120))+')';ctx.lineWidth=.5;ctx.stroke(); }
+    }
+    requestAnimationFrame(draw);
+  }
+  draw();
+}
+
+// ══════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════
+function init(){
+  renderP1(); renderP2(); renderP3(); renderExam();
+  renderScoreHist(); renderChart(); updateMilestones();
+  renderErrors(); buildRatings();
+  updateStats(); updateStreak();
+  updateClock(); setInterval(updateClock,1000);
+  switchTab('p1');
+  initParticles();
+  loadFromCloud();
+}
+init();
+</script>
+</body>
+</html>
